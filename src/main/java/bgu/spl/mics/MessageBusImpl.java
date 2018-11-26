@@ -31,7 +31,7 @@ public class MessageBusImpl implements MessageBus {
 
 	}
 
-	
+	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 		// TODO Auto-generated method stub

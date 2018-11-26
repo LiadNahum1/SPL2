@@ -18,8 +18,7 @@ public class Inventory {
      * Retrieves the single instance of this class.
      */
 	public static Inventory getInstance() {
-		//TODO: Implement this
-		return null;
+		return new Inventory();
 	}
 	
 	/**
