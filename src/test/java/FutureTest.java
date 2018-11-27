@@ -1,4 +1,4 @@
-package bgu.spl.mics.application.passiveObjects;
+package bgu.spl.mics;
 
 import org.junit.After;
 import org.junit.Before;
@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class InventoryTest {
+public class FutureTest {
 
     @Before
     public void setUp() throws Exception {
@@ -17,22 +17,18 @@ public class InventoryTest {
     }
 
     @Test
-    public void getInstance() {
+    public void get() {
     }
 
     @Test
-    public void load() {
+    public void resolve() {
     }
 
     @Test
-    public void take() {
+    public void isDone() {
     }
 
     @Test
-    public void checkAvailabiltyAndGetPrice() {
-    }
-
-    @Test
-    public void printInventoryToFile() {
+    public void get1() {
     }
 }

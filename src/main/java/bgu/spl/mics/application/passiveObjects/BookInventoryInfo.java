@@ -8,6 +8,10 @@ package bgu.spl.mics.application.passiveObjects;
  */
 public class BookInventoryInfo {
 
+	private String bookTitle;
+	private int amountInInventory;
+	private int price;
+	public BookInventoryInfo (String title , int amount , int price){}
 	/**
      * Retrieves the title of this book.
      * <p>
