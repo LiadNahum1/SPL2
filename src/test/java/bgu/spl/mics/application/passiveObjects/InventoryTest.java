@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
+import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
-public class InventoryTest {
+public class InventoryTest extends TestCase {
     private Inventory inv;
     @Before
     public void setUp() throws Exception {
@@ -34,9 +35,9 @@ public class InventoryTest {
     //@PRE: checkAvailabiltyAndGetPrice(book) = -1
     //@POST: checkAvailabiltyAndGetPrice(book) = 10
     public void load() {
-         BookInventoryInfo[] books = new BookInventoryInfo[1];
-         books[0] = new BookInventoryInfo("h",2,10);
-         inv.load(books);
+        BookInventoryInfo[] books = new BookInventoryInfo[1];
+        books[0] = new BookInventoryInfo("h",2,10);
+        inv.load(books);
         assertEquals(10,inv.checkAvailabiltyAndGetPrice("h"));
         assertEquals(2,books[0].getAmountInInventory());
     }
@@ -50,17 +51,21 @@ public class InventoryTest {
         inv.load(books);
         OrderResult orderRe = inv.take("h");
         assertEquals(0,books[0].getAmountInInventory());
-        assertEquals(OrderResult.SUCCESSFULLY_TAKEN ,orderRe);
         orderRe = inv.take("d");
         assertEquals(OrderResult.NOT_IN_STOCK ,orderRe);
         orderRe = inv.take("h");
         assertEquals(OrderResult.NOT_IN_STOCK ,orderRe);
         assertEquals(-1,inv.checkAvailabiltyAndGetPrice("h"));
     }
-
+    //@PRE: none
+    //@POST:none
     @Test
     public void checkAvailabiltyAndGetPrice() {
-
+        BookInventoryInfo[] books = new BookInventoryInfo[1];
+        books[0] = new BookInventoryInfo("book1",1,14);
+        inv.load(books);
+        assertEquals(14,inv.checkAvailabiltyAndGetPrice("book1"));
+        assertEquals(-1,inv.checkAvailabiltyAndGetPrice("notExist"));
     }
 
     @Test
@@ -77,8 +82,9 @@ public class InventoryTest {
             HashMap<String,Integer> booksInInv =  (HashMap<String,Integer>)object;
             assertEquals(new Integer(2), booksInInv.get("book2"));
             objectInputStream.close();
-        } catch (Exception e) {
-
+        }
+        catch (Exception e) {
+            assertTrue(false);
         }
     }
 }
