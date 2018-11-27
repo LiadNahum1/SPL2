@@ -25,6 +25,7 @@ public class ExampleEventHandlerService extends MicroService {
         }
     }
 
+
     @Override
     protected void initialize() {
         System.out.println("Event Handler " + getName() + " started");
