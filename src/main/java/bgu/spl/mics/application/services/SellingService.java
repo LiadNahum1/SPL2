@@ -1,6 +1,10 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.BookOrderEvent;
+import bgu.spl.mics.CheckAvailabilityEvent;
+import bgu.spl.mics.Future;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -12,17 +16,35 @@ import bgu.spl.mics.MicroService;
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
-public class SellingService extends MicroService{
+public class SellingService extends MicroService {
+	private MoneyRegister moneyReg;
 
 	public SellingService() {
-		super("Change_This_Name");
+		super("SellingService");
 		// TODO Implement this
+		moneyReg = MoneyRegister.getInstance();
 	}
 
 	@Override
 	protected void initialize() {
 		// TODO Implement this
-		
+		System.out.println("Event Handler " + getName() + " started");
+
+		subscribeEvent(BookOrderEvent.class, event -> {
+			synchronized (this) {
+				Future<Boolean> futureObj = (Future<Boolean>)sendEvent(new CheckAvailabilityEvent(event.getBookName()));
+				while (!((Future) futureObj).isDone()) {
+					try {
+						this.wait();
+					} catch (Exception e) {
+					}
+				}
+				complete(event, "Hello from " + getName());
+				terminate();
+			}
+		});
 	}
 
 }
+
+

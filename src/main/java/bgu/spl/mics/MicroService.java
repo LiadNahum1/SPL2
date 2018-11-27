@@ -1,5 +1,6 @@
 package bgu.spl.mics;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The MicroService is an abstract class that any micro-service in the system
@@ -24,7 +25,7 @@ public abstract class MicroService implements Runnable {
     private boolean terminated = false;
     private final String name;
     private MessageBus messageBus = MessageBusImpl.getInstance();
-    private HashMap<Class, Callback> messageCallBackHash;
+    private ConcurrentHashMap<Class, Callback> messageCallBackHash;
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -32,7 +33,9 @@ public abstract class MicroService implements Runnable {
      */
     public MicroService(String name) {
         this.name = name;
-        this.messageCallBackHash = new HashMap<>();
+        this.messageCallBackHash = new ConcurrentHashMap<>();
+        //TODO this is microservice or selling service
+
     }
 
     /**
@@ -125,6 +128,7 @@ public abstract class MicroService implements Runnable {
      */
     protected final <T> void complete(Event<T> e, T result) {
         //TODO: implement this.
+        messageBus.complete(e, result);
     }
 
     /**
@@ -154,6 +158,7 @@ public abstract class MicroService implements Runnable {
      */
     @Override
     public final void run() {
+        messageBus.register(this); //Micro service registered to messageBus
         initialize();
         while (!terminated) {
             System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)

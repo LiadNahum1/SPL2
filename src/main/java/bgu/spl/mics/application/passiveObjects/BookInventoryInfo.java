@@ -11,15 +11,18 @@ public class BookInventoryInfo {
 	private String bookTitle;
 	private int amountInInventory;
 	private int price;
-	public BookInventoryInfo (String title , int amount , int price){}
+	public BookInventoryInfo (String bookTitle , int amount , int price){
+		this.bookTitle = bookTitle;
+		this.amountInInventory = amount;
+		this.price= price;
+	}
 	/**
      * Retrieves the title of this book.
      * <p>
      * @return The title of this book.   
      */
 	public String getBookTitle() {
-		// TODO Implement this
-		return null;
+		return this.bookTitle;
 	}
 
 	/**
@@ -28,8 +31,7 @@ public class BookInventoryInfo {
      * @return amount of available books.      
      */
 	public int getAmountInInventory() {
-		// TODO Implement this
-		return 0;
+		return this.amountInInventory;
 	}
 
 	/**
@@ -38,8 +40,7 @@ public class BookInventoryInfo {
      * @return the price of the book.
      */
 	public int getPrice() {
-		// TODO Implement this
-		return 0;
+		return this.price;
 	}
 	
 	

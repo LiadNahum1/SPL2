@@ -39,7 +39,6 @@ public class InventoryTest extends TestCase {
         books[0] = new BookInventoryInfo("h",2,10);
         inv.load(books);
         assertEquals(10,inv.checkAvailabiltyAndGetPrice("h"));
-        assertEquals(2,books[0].getAmountInInventory());
     }
 
     @Test
@@ -50,7 +49,6 @@ public class InventoryTest extends TestCase {
         books[0] = new BookInventoryInfo("h",1,10);
         inv.load(books);
         OrderResult orderRe = inv.take("h");
-        assertEquals(0,books[0].getAmountInInventory());
         orderRe = inv.take("d");
         assertEquals(OrderResult.NOT_IN_STOCK ,orderRe);
         orderRe = inv.take("h");
