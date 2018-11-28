@@ -1,9 +1,6 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.BookOrderEvent;
-import bgu.spl.mics.CheckAvailabilityEvent;
-import bgu.spl.mics.Future;
-import bgu.spl.mics.MicroService;
+import bgu.spl.mics.*;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 
 /**
@@ -22,6 +19,7 @@ public class SellingService extends MicroService {
 	public SellingService() {
 		super("SellingService");
 		// TODO Implement this
+
 		moneyReg = MoneyRegister.getInstance();
 	}
 
@@ -31,7 +29,7 @@ public class SellingService extends MicroService {
 		System.out.println("Event Handler " + getName() + " started");
 
 		subscribeEvent(BookOrderEvent.class, event -> {
-			synchronized (this) {
+			//synchronized (this) {
 				Future<Boolean> futureObj = (Future<Boolean>)sendEvent(new CheckAvailabilityEvent(event.getBookName()));
 				while (!((Future) futureObj).isDone()) {
 					try {
@@ -41,7 +39,7 @@ public class SellingService extends MicroService {
 				}
 				complete(event, "Hello from " + getName());
 				terminate();
-			}
+			//}
 		});
 	}
 

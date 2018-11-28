@@ -78,10 +78,9 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void register(MicroService m) {
-        synchronized(missionsToService) { //TODO:check if needed
         missionsToService.put(m,new LinkedBlockingQueue<>());
-        }
-        }
+
+	}
 
 	@Override
 	public void unregister(MicroService m) {
@@ -119,6 +118,7 @@ public class MessageBusImpl implements MessageBus {
     }
 
 	@Override
+	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
 		// TODO Auto-generated method stub
 		return null;
