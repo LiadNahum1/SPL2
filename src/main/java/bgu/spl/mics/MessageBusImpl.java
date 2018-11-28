@@ -21,7 +21,7 @@ public class MessageBusImpl implements MessageBus {
 	private MessageBusImpl() {
 		missionsToService = new ConcurrentHashMap<>();
 		servisesToEvents = new ConcurrentHashMap<>();
-	}
+	} //TODO: make sure its synchronized
 
 	public static MessageBusImpl getInstance() {
 		if(instance == null) {
@@ -60,7 +60,6 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> void complete(Event<T> e, T result) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -72,12 +71,19 @@ public class MessageBusImpl implements MessageBus {
 	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
+            Class eventType = e.getClass();
+            MicroService execute = servisesToEvents.get(eventType).poll();
+            missionsToService.get(execute).add(e);
+            Future<T> fu = new Future<>();
+            fu.notifyAll(); //or notifay one?
+        return fu;
+
+
+    }
 
 	@Override
-	public void register(MicroService m) {
+	public void register(MicroService m) { //TODO: should check if try to register twice?
         missionsToService.put(m,new LinkedBlockingQueue<>());
 
 	}
