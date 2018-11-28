@@ -12,7 +12,7 @@ import java.util.Vector;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
-	private static MoneyRegister instance;
+	private static MoneyRegister instance = null;
 	private Vector<OrderReceipt> orderReceipt;
 	private MoneyRegister(){
 		this.orderReceipt = new Vector<>();
@@ -23,9 +23,7 @@ public class MoneyRegister {
 	public static MoneyRegister getInstance() {
 		if(instance == null){
 			instance = new MoneyRegister();
-			return instance ;
 		}
-		else
 			return instance ;
 	}
 	
