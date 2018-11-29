@@ -1,5 +1,10 @@
 package bgu.spl.mics.application.passiveObjects;
 
+import bgu.spl.mics.MessageBusImpl;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Vector;
 
 /**
@@ -12,19 +17,23 @@ import java.util.Vector;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
-	private static MoneyRegister instance = null;
 	private Vector<OrderReceipt> orderReceipt;
+	private int totalSum;
 	private MoneyRegister(){
 		this.orderReceipt = new Vector<>();
+		this.totalSum = 0;
 	}
+	//thread safe singelton
+	private static class SingletonHolder1 {
+		private static MoneyRegister
+				instance = new MoneyRegister();}
+
 	/**
      * Retrieves the single instance of this class.
      */
 	public static MoneyRegister getInstance() {
-		if(instance == null){
-			instance = new MoneyRegister();
-		}
-			return instance ;
+			return MoneyRegister.SingletonHolder1.instance;
+
 	}
 	
 	/**
@@ -33,15 +42,18 @@ public class MoneyRegister {
      * @param r		The receipt to save in the money register.
      */
 	public void file (OrderReceipt r) {
-		//TODO: Implement this.
+		synchronized (this) {
+			orderReceipt.add(r);
+			this.totalSum = this.totalSum + r.getPrice();
+		}
 	}
 	
 	/**
      * Retrieves the current total earnings of the store.  
      */
 	public int getTotalEarnings() {
-		//TODO: Implement this
-		return 0;
+		return totalSum;
+
 	}
 	
 	/**
@@ -49,8 +61,9 @@ public class MoneyRegister {
      * <p>
      * @param amount 	amount to charge
      */
+	//assumes that c has enough money
 	public void chargeCreditCard(Customer c, int amount) {
-		// TODO Implement this
+		c.chargeCreditCard(amount);
 	}
 	
 	/**
@@ -59,6 +72,15 @@ public class MoneyRegister {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
-		//TODO: Implement this
+		try {
+			FileOutputStream fileOut = new FileOutputStream(filename);
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(orderReceipt);
+			out.close();
+			fileOut.close();
+			System.out.printf("Serialized data is saved in " + filename);
+		} catch (IOException i) {
+			i.printStackTrace();
+		}
 	}
 }

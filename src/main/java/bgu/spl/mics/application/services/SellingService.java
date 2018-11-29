@@ -34,17 +34,24 @@ public class SellingService extends MicroService {
 				//check availability
 				Future<Boolean> futureObj = (Future<Boolean>)sendEvent(new CheckAvailabilityEvent(event.getBook()));
 				Boolean result  = futureObj.get(); //blocking method until the Future is resolved
-
 				synchronized(event.getCustomer()) {
 					Customer c = event.getCustomer();
 					BookInventoryInfo b = event.getBook();
 					//check if customer has enough money
 					if (c.getAvailableCreditAmount() >= b.getPrice()) {
-						OrderReceipt receipt = new OrderReceipt(, getName(), c.getId(), b.getBookTitle(), b.getPrice(), );
-						complete(event, "Hello from " + getName());
-						int orderId, String seller,int customerId, String bookTitle,int price, int issuedTick,
-						int orderTick, int proccessTick
+						moneyReg.chargeCreditCard(c, b.getPrice()); //charging customer
+						//TODO: add event that take the book
+						OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), );
+						complete(event, receipt);
+						//int orderId, String seller,int customerId, String bookTitle,int price, int issuedTick,
+						//int orderTick, int proccessTick
 					}
+					else{
+						complete(event, null);
+					}
+
+
+
 				}
 			terminate();
 		});

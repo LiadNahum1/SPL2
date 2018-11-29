@@ -42,7 +42,13 @@ public class BookInventoryInfo {
 	public int getPrice() {
 		return this.price;
 	}
-	
+
+	/**
+	 * Reduce the amount of books of this type in the inventory.
+	 **/
+	public void reduceAmountInInventory() {
+		this.amountInInventory = this.amountInInventory - 1;
+	}
 	
 
 	

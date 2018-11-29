@@ -1,6 +1,9 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
+import bgu.spl.mics.MessageBusImpl;
+
+import java.util.Vector;
 
 /**
  * Passive object representing the resource manager.
@@ -12,14 +15,23 @@ import bgu.spl.mics.Future;
  * You can add ONLY private methods and fields to this class.
  */
 public class ResourcesHolder {
-	
+	private Vector<DeliveryVehicle> deliveryVehicles;
+
+	//thread safe singelton
+	private static class SingletonHolderVehicle {
+		private static ResourcesHolder instance = new ResourcesHolder();}
+	private ResourcesHolder() {
+		this.deliveryVehicles = new Vector<>();
+	}
+
 	/**
      * Retrieves the single instance of this class.
      */
 	public static ResourcesHolder getInstance() {
-		//TODO: Implement this
-		return null;
+
+		return ResourcesHolder.SingletonHolderVehicle.instance;
 	}
+
 	
 	/**
      * Tries to acquire a vehicle and gives a future object which will
@@ -49,7 +61,11 @@ public class ResourcesHolder {
      * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
      */
 	public void load(DeliveryVehicle[] vehicles) {
-		//TODO: Implement this
+		synchronized (deliveryVehicles) {
+			for (int i = 0; i < vehicles.length; i = i + 1) {
+				deliveryVehicles.add(vehicles[i]);
+			}
+		}
 	}
 
 }

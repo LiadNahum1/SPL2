@@ -80,5 +80,9 @@ public class Customer {
 	public int getCreditNumber() {
 		return this.creditCard;
 	}
-	
+
+	//assumes custimer has enough money
+	public void chargeCreditCard(int amount){
+		this.availableAmountInCreditCard = this.availableAmountInCreditCard - amount;
+	}
 }

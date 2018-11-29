@@ -17,18 +17,15 @@ public class MessageBusImpl implements MessageBus {
 	private ConcurrentHashMap<Class,BlockingQueue<MicroService>>servisesToEvents;
 	private ConcurrentHashMap<Class,BlockingQueue<MicroService>>servisesToBrodcasts;
 	private static MessageBusImpl instance = null;
-
-	private MessageBusImpl() {
-		missionsToService = new ConcurrentHashMap<>();
-		servisesToEvents = new ConcurrentHashMap<>();
-	} //TODO: make sure its synchronized
-
+	//thread safe singelton
+	private static class SingletonHolder {
+		private static MessageBusImpl
+				instance = new MessageBusImpl();}
+	private MessageBusImpl() {}
 	public static MessageBusImpl getInstance() {
-		if(instance == null) {
-			instance = new MessageBusImpl();
-		}
-		return instance;
+		return SingletonHolder.instance;
 	}
+
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		synchronized(servisesToEvents) { //TODO:check if needed
