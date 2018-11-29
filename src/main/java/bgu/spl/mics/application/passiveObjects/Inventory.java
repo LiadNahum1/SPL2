@@ -53,13 +53,15 @@ public class Inventory {
      * 			second should reduce by one the number of books of the desired type.
      */
 	public OrderResult take (String book) {
-		for(BookInventoryInfo bookInfo : books){
-			if(bookInfo.getBookTitle().equals(book)){
-				bookInfo.reduceAmountInInventory();
-				return OrderResult.SUCCESSFULLY_TAKEN;
+		synchronized (books) {
+			for (BookInventoryInfo bookInfo : books) {
+				if (bookInfo.getBookTitle().equals(book)) {
+					bookInfo.reduceAmountInInventory();
+					return OrderResult.SUCCESSFULLY_TAKEN;
+				}
 			}
+			return OrderResult.NOT_IN_STOCK; //TODO: synchronized?
 		}
-		return OrderResult.NOT_IN_STOCK; //TODO: synchronized?
 	}
 	
 	
@@ -71,12 +73,14 @@ public class Inventory {
      * @return the price of the book if it is available, -1 otherwise.
      */
 	public int checkAvailabiltyAndGetPrice(String book) {
-		for(BookInventoryInfo bookInfo : books){
-			if(bookInfo.getAmountInInventory() > 0){ //TODO:check this one
-				return bookInfo.getPrice();
+		synchronized (books) {
+			for (BookInventoryInfo bookInfo : books) {
+				if (bookInfo.getAmountInInventory() > 0) { //TODO:check this one
+					return bookInfo.getPrice();
+				}
 			}
+			return -1;
 		}
-		return -1;
 	}
 	
 	/**

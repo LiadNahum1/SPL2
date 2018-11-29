@@ -1,4 +1,6 @@
-package bgu.spl.mics;
+package bgu.spl.mics.Messages;
+
+import bgu.spl.mics.MessageBus;
 
 /**
  * A "Marker" interface extending {@link Message}. When sending a Broadcast message

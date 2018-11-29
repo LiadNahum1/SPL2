@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.Messages.Broadcast;
+import bgu.spl.mics.Messages.FiftyPercentDiscount;
+import bgu.spl.mics.Messages.Message;
+
 /**
  * The message-bus is a shared object used for communication between
  * micro-services.
@@ -12,13 +16,13 @@ package bgu.spl.mics;
 public interface MessageBus {
 
     /**
-     * Subscribes {@code m} to receive {@link Event}s of type {@code type}.
+     * Subscribes {@code m} to receive {@link FiftyPercentDiscount.Event}s of type {@code type}.
      * <p>
      * @param <T>  The type of the result expected by the completed event.
      * @param type The type to subscribe to,
      * @param m    The subscribing micro-service.
      */
-    <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m);
+    <T> void subscribeEvent(Class<? extends FiftyPercentDiscount.Event<T>> type, MicroService m);
 
     /**
      * Subscribes {@code m} to receive {@link Broadcast}s of type {@code type}.
@@ -32,13 +36,13 @@ public interface MessageBus {
      * Notifies the MessageBus that the event {@code e} is completed and its
      * result was {@code result}.
      * When this method is called, the message-bus will resolve the {@link Future}
-     * object associated with {@link Event} {@code e}.
+     * object associated with {@link FiftyPercentDiscount.Event} {@code e}.
      * <p>
      * @param <T>    The type of the result expected by the completed event.
      * @param e      The completed event.
      * @param result The resolved result of the completed event.
      */
-    <T> void complete(Event<T> e, T result);
+    <T> void complete(FiftyPercentDiscount.Event<T> e, T result);
 
     /**
      * Adds the {@link Broadcast} {@code b} to the message queues of all the
@@ -49,7 +53,7 @@ public interface MessageBus {
     void sendBroadcast(Broadcast b);
 
     /**
-     * Adds the {@link Event} {@code e} to the message queue of one of the
+     * Adds the {@link FiftyPercentDiscount.Event} {@code e} to the message queue of one of the
      * micro-services subscribed to {@code e.getClass()} in a round-robin
      * fashion. This method should be non-blocking.
      * <p>
@@ -58,7 +62,7 @@ public interface MessageBus {
      * @return {@link Future<T>} object to be resolved once the processing is complete,
      * 	       null in case no micro-service has subscribed to {@code e.getClass()}.
      */
-    <T> Future<T> sendEvent(Event<T> e);
+    <T> Future<T> sendEvent(FiftyPercentDiscount.Event<T> e);
 
     /**
      * Allocates a message-queue for the {@link MicroService} {@code m}.

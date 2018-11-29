@@ -1,6 +1,6 @@
 package bgu.spl.mics.example.messages;
 
-import bgu.spl.mics.Broadcast;
+import bgu.spl.mics.Messages.Broadcast;
 
 public class ExampleBroadcast implements Broadcast {
 

@@ -1,14 +1,16 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.CheckAvailabilityEvent;
+import bgu.spl.mics.Messages.CheckAvailabilityEvent;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.Messages.TakeBookEvent;
 import bgu.spl.mics.application.passiveObjects.Inventory;
+import bgu.spl.mics.application.passiveObjects.OrderResult;
 
 /**
  * InventoryService is in charge of the book inventory and stock.
  * Holds a reference to the {@link Inventory} singleton of the store.
  * This class may not hold references for objects which it is not responsible for:
- * {@link ResourcesHolder}, {@link MoneyRegister}.
+ * {@linkResourcesHolder}, {@linkMoneyRegister}.
  * 
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
@@ -24,17 +26,28 @@ public class InventoryService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
-		// TODO Implement this
 		System.out.println("Event Handler " + getName() + " started");
 
+		//subscribes to CheckAvailability Event
 		subscribeEvent(CheckAvailabilityEvent.class, event -> {
-			int price = inventory.checkAvailabiltyAndGetPrice(event.getName());
-
-				complete(event, "Hello from " + getName());
+			int price = inventory.checkAvailabiltyAndGetPrice(event.getBook().getBookTitle());
+			if(price != -1){
+				complete(event, true);
+			}
+			else{
+				complete(event, false);
+			}
 				terminate();
+		});
 
+		//subscribes to TakeBook Event
+		subscribeEvent(TakeBookEvent.class, event -> {
+			synchronized (inventory) {
+				OrderResult orderRe =inventory.take(event.getBookName());
+				complete(event, orderRe);
+			}
 
+			terminate();
 		});
 	}
 

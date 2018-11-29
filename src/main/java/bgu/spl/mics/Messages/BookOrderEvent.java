@@ -1,10 +1,10 @@
-package bgu.spl.mics;
+package bgu.spl.mics.Messages;
 
 import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 
-public class BookOrderEvent implements Event<OrderReceipt> {
+public class BookOrderEvent implements FiftyPercentDiscount.Event<OrderReceipt> {
     private Customer customer;
     private BookInventoryInfo book;
     public static int orderId = 0;

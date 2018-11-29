@@ -1,8 +1,8 @@
 package bgu.spl.mics.example.messages;
 
-import bgu.spl.mics.Event;
+import bgu.spl.mics.Messages.FiftyPercentDiscount;
 
-public class ExampleEvent implements Event<String>{
+public class ExampleEvent implements FiftyPercentDiscount.Event<String> {
 
     private String senderName;
 

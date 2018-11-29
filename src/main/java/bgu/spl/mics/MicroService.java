@@ -1,4 +1,8 @@
 package bgu.spl.mics;
+import bgu.spl.mics.Messages.Broadcast;
+import bgu.spl.mics.Messages.FiftyPercentDiscount;
+import bgu.spl.mics.Messages.Message;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,7 +28,7 @@ public abstract class MicroService implements Runnable {
     private boolean terminated = false;
     private final String name;
     private MessageBus messageBus = MessageBusImpl.getInstance();
-    private ConcurrentHashMap<Class, Callback> messageCallBackHash; //TODO: hash map generic
+    private ConcurrentHashMap<Class<? extends Message>, Callback<? extends Message>> messageCallBackHash; //TODO: hash map generic
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -58,7 +62,7 @@ public abstract class MicroService implements Runnable {
      *                 {@code type} are taken from this micro-service message
      *                 queue.
      */
-    protected final <T, E extends Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
+    protected final <T, E extends FiftyPercentDiscount.Event<T>> void subscribeEvent(Class<E> type, Callback<E> callback) {
         messageBus.subscribeEvent(type, this);
         messageCallBackHash.putIfAbsent(type, callback);
     }
@@ -100,7 +104,7 @@ public abstract class MicroService implements Runnable {
      *         			micro-service processing this event.
      * 	       			null in case no micro-service has subscribed to {@code e.getClass()}.
      */
-    protected final <T> Future<T> sendEvent(Event<T> e) {
+    protected final <T> Future<T> sendEvent(FiftyPercentDiscount.Event<T> e) {
         return messageBus.sendEvent(e);
     }
 
@@ -124,7 +128,7 @@ public abstract class MicroService implements Runnable {
      * @param result The result to resolve the relevant Future object.
      *               {@code e}.
      */
-    protected final <T> void complete(Event<T> e, T result) {
+    protected final <T> void complete(FiftyPercentDiscount.Event<T> e, T result) {
         messageBus.complete(e, result);
     }
 
@@ -160,8 +164,7 @@ public abstract class MicroService implements Runnable {
         while (!terminated) {
             try {
                 Message message = messageBus.awaitMessage(this);
-                Class c = message.getClass();
-                Callback<? extends Message> function = messageCallBackHash.get(message.getClass());
+                Callback function = messageCallBackHash.get(message.getClass());
                 function.call(message);
             }
             catch(Exception e){}

@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.Messages.Broadcast;
+import bgu.spl.mics.Messages.FiftyPercentDiscount;
+import bgu.spl.mics.Messages.Message;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -11,7 +15,7 @@ import java.util.concurrent.*;
  */
 public class MessageBusImpl implements MessageBus {
 
-	private ConcurrentHashMap<MicroService,BlockingQueue<Event>>missionsToService;
+	private ConcurrentHashMap<MicroService,BlockingQueue<FiftyPercentDiscount.Event>>missionsToService;
 	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToEvents;
 	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToBrodcasts;
 	private static MessageBusImpl instance = null;
@@ -25,7 +29,7 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
+	public <T> void subscribeEvent(Class<? extends FiftyPercentDiscount.Event<T>> type, MicroService m) {
 		synchronized(servisesToEvents) { //TODO:check if needed
 			if (servisesToEvents.contains(type)) { //if the event already as a servise then add this to the queueu
 				servisesToEvents.get(type).add(m);
@@ -53,7 +57,7 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public <T> void complete(Event<T> e, T result) {
+	public <T> void complete(FiftyPercentDiscount.Event<T> e, T result) {
 		// TODO Auto-generated method stub
 	}
 
@@ -65,7 +69,7 @@ public class MessageBusImpl implements MessageBus {
 
 	//sends it to the queue of the apropriate microservies
 	@Override
-	public <T> Future<T> sendEvent(Event<T> e) {
+	public <T> Future<T> sendEvent(FiftyPercentDiscount.Event<T> e) {
 
             Class eventType = e.getClass();
             MicroService execute = servisesToEvents.get(eventType).poll();

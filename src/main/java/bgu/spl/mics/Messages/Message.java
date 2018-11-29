@@ -1,4 +1,6 @@
-package bgu.spl.mics;
+package bgu.spl.mics.Messages;
+
+import bgu.spl.mics.MessageBus;
 
 /**
  * A message is a data-object which is passed between micro-services as a means
