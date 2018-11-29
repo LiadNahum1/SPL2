@@ -2,6 +2,7 @@ package bgu.spl.mics;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
@@ -11,10 +12,11 @@ import java.util.concurrent.*;
  */
 public class MessageBusImpl implements MessageBus {
 
-	private ConcurrentHashMap<MicroService,BlockingQueue<Event>>missionsToService;
+	private ConcurrentHashMap<MicroService,BlockingQueue<Message>>missionsToService;
 	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToEvents;
-	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToBrodcasts;
-	private static MessageBusImpl instance = null;
+	private ConcurrentHashMap<Class<? extends Message>,ConcurrentSkipListSet<MicroService>>servisesToBrodcasts;
+    private ConcurrentHashMap<Message,Future>futersOfEvents;
+    private static MessageBusImpl instance = null;
 	//thread safe singelton
 	private static class SingletonHolder {
 		private static MessageBusImpl
@@ -41,13 +43,13 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		synchronized(servisesToBrodcasts) { //TODO:check if needed
-			if (servisesToBrodcasts.contains(type)) { //if the event already as a servise then add this to the queueu
+			if (servisesToBrodcasts.contains(type)) { //if the event already as a servise then add this to the list
 				servisesToBrodcasts.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
-				BlockingQueue<MicroService> queue = new LinkedBlockingQueue<>();
-				queue.add(m);
-				servisesToBrodcasts.put(type, queue);
+				ConcurrentSkipListSet<MicroService> list = new ConcurrentSkipListSet<>();
+				list.add(m);
+				servisesToBrodcasts.put(type, list);
 			}
 		}
 	}
@@ -59,21 +61,30 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		// TODO Auto-generated method stub
-
+		synchronized (servisesToBrodcasts){
+		Iterator itr = servisesToBrodcasts.get(b).iterator();
+			while(itr.hasNext()){
+				synchronized (missionsToService) {
+					missionsToService.get(itr.next()).add(b);//TODO: I don't get why this works;
+				}
+			}
+		}
 	}
+
 
 	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-
-            Class eventType = e.getClass();
-            MicroService execute = servisesToEvents.get(eventType).poll();
-            missionsToService.get(execute).add(e);
+	    synchronized (servisesToEvents) {
+            MicroService execute = servisesToEvents.get(e.getClass()).poll();
+            missionsToService.get(execute).add(e); //should i synchronize this?
+        }
+        synchronized (futersOfEvents) {
             Future<T> fu = new Future<>();
-            fu.notifyAll(); //or notifay one?
-        return fu;
-
+            futersOfEvents.put(e, fu);
+            fu.notifyAll();
+            return fu;
+        }
 
     }
 
@@ -105,11 +116,11 @@ public class MessageBusImpl implements MessageBus {
                 }
                 //unassign M from all brodcasts
                 synchronized (servisesToBrodcasts){
-                    Iterator<Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
+                    Iterator<Map.Entry<Class<? extends Message>, ConcurrentSkipListSet<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
 
                     while(itr.hasNext())
                     {
-                        Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>> entry = itr.next();
+                        Map.Entry<Class<? extends Message>, ConcurrentSkipListSet<MicroService>> entry = itr.next();
                         if(entry.getValue().contains(m))
                             entry.getValue().remove(m);
                         itr.remove();
@@ -121,9 +132,18 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		synchronized (missionsToService) {
+			while (missionsToService.get(m).isEmpty() == true) {
+				wait();
+			}
+			m.notifyAll();
+			return missionsToService.get(m).take();
+		}
+
+
+
+
+			}
 
 	
 
