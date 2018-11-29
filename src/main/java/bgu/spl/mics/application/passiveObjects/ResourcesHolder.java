@@ -1,7 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
-import bgu.spl.mics.MessageBusImpl;
 
 import java.util.Vector;
 

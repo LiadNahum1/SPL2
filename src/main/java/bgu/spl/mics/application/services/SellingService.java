@@ -1,10 +1,13 @@
 package bgu.spl.mics.application.services;
 
-import bgu.spl.mics.*;
 import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
+import bgu.spl.mics.BookOrderEvent;
+import bgu.spl.mics.CheckAvailabilityEvent;
+import bgu.spl.mics.Future;
+import bgu.spl.mics.MicroService;
 
 /**
  * Selling service in charge of taking orders from customers.

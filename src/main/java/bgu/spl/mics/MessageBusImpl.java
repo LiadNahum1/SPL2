@@ -1,9 +1,7 @@
 package bgu.spl.mics;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
@@ -14,8 +12,8 @@ import java.util.concurrent.*;
 public class MessageBusImpl implements MessageBus {
 
 	private ConcurrentHashMap<MicroService,BlockingQueue<Event>>missionsToService;
-	private ConcurrentHashMap<Class,BlockingQueue<MicroService>>servisesToEvents;
-	private ConcurrentHashMap<Class,BlockingQueue<MicroService>>servisesToBrodcasts;
+	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToEvents;
+	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToBrodcasts;
 	private static MessageBusImpl instance = null;
 	//thread safe singelton
 	private static class SingletonHolder {
@@ -95,11 +93,11 @@ public class MessageBusImpl implements MessageBus {
                 }
                 //unassign M from all events
                 synchronized (servisesToEvents){
-                    Iterator<Map.Entry<Class, BlockingQueue<MicroService>>> itr = servisesToEvents.entrySet().iterator();
+                    Iterator<Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>>> itr = servisesToEvents.entrySet().iterator();
 
                     while(itr.hasNext())
                     {
-                        Map.Entry<Class, BlockingQueue<MicroService>> entry = itr.next();
+                        Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>> entry = itr.next();
                         if(entry.getValue().contains(m))
                             entry.getValue().remove(m);
                         itr.remove();
@@ -107,11 +105,11 @@ public class MessageBusImpl implements MessageBus {
                 }
                 //unassign M from all brodcasts
                 synchronized (servisesToBrodcasts){
-                    Iterator<Map.Entry<Class, BlockingQueue<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
+                    Iterator<Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
 
                     while(itr.hasNext())
                     {
-                        Map.Entry<Class, BlockingQueue<MicroService>> entry = itr.next();
+                        Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>> entry = itr.next();
                         if(entry.getValue().contains(m))
                             entry.getValue().remove(m);
                         itr.remove();
