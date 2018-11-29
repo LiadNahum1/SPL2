@@ -56,7 +56,9 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-		// TODO Auto-generated method stub
+	synchronized (futersOfEvents){
+	futersOfEvents.get(e).resolve(result);
+	}
 	}
 
 	@Override
@@ -139,12 +141,6 @@ public class MessageBusImpl implements MessageBus {
 			m.notifyAll();
 			return missionsToService.get(m).take();
 		}
-
-
-
-
-			}
-
-	
+	}
 
 }
