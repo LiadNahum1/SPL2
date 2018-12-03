@@ -1,5 +1,9 @@
 package bgu.spl.mics;
 
+import bgu.spl.mics.Messages.Broadcast;
+import bgu.spl.mics.Messages.Event;
+import bgu.spl.mics.Messages.Message;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
