@@ -10,8 +10,5 @@
         <module name="spl2" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="spl191BookStore" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
