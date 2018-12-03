@@ -7,6 +7,7 @@ import bgu.spl.mics.Messages.Message;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Vector;
 import java.util.concurrent.*;
 
 /**
@@ -18,10 +19,9 @@ public class MessageBusImpl implements MessageBus {
 
 	private ConcurrentHashMap<MicroService,BlockingQueue<Message>>missionsToService;
 	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToEvents;
-	private ConcurrentHashMap<Class<? extends Message>,ConcurrentSkipListSet<MicroService>>servisesToBrodcasts;
+	private ConcurrentHashMap<Class<? extends Message>, Vector<MicroService>>servisesToBrodcasts;
     private ConcurrentHashMap<Message,Future>futersOfEvents;
-    private static MessageBusImpl instance = null;
-	//thread safe singelton
+    //thread safe singelton
 	private static class SingletonHolder {
 		private static MessageBusImpl
 				instance = new MessageBusImpl();}
@@ -51,18 +51,16 @@ public class MessageBusImpl implements MessageBus {
 				servisesToBrodcasts.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
-				ConcurrentSkipListSet<MicroService> list = new ConcurrentSkipListSet<>();
+				Vector<MicroService> list = new Vector<>();
 				list.add(m);
 				servisesToBrodcasts.put(type, list);
 			}
 		}
 	}
 
-	@Override
+	@Override //TODO:should i synchronize
 	public <T> void complete(Event<T> e, T result) {
-	synchronized (futersOfEvents){
 	futersOfEvents.get(e).resolve(result);
-	}
 	}
 
 	@Override
@@ -71,7 +69,7 @@ public class MessageBusImpl implements MessageBus {
 		Iterator itr = servisesToBrodcasts.get(b).iterator();
 			while(itr.hasNext()){
 				synchronized (missionsToService) {
-					missionsToService.get(itr.next()).add(b);//TODO: I don't get why this works;
+					missionsToService.get(itr.next()).add(b);
 				}
 			}
 		}
@@ -81,18 +79,20 @@ public class MessageBusImpl implements MessageBus {
 	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
-	    synchronized (servisesToEvents) {
-            MicroService execute = servisesToEvents.get(e.getClass()).poll();
-            missionsToService.get(execute).add(e); //should i synchronize this?
+		Future<T> fu = new Future<>();
+		synchronized (futersOfEvents) {
+           futersOfEvents.put(e, fu);
         }
-        synchronized (futersOfEvents) {
-            Future<T> fu = new Future<>();
-            futersOfEvents.put(e, fu);
-            notifyAll();
-            return fu;
-        }
+		MicroService execute = servisesToEvents.get(e.getClass()).poll(); //this queue will not be deleted
+		servisesToEvents.get(e.getClass()).add(execute);
+		synchronized (missionsToService) {
+			missionsToService.get(execute).add(e); //should i synchronize this?
+			missionsToService.notifyAll();
+		}
+		return fu;
 
-    }
+
+	}
 
 	@Override
 	public void register(MicroService m) { //TODO: should check if try to register twice?
@@ -103,11 +103,12 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void unregister(MicroService m) {
         //TODO:check if needed
-            if(missionsToService.contains(m)){
-                //remove m from servises queue
-                synchronized(missionsToService) {
-                    missionsToService.remove(m);
-                }
+		synchronized (missionsToService) {
+			if (missionsToService.contains(m)) {
+				//remove m from servises queue
+				missionsToService.remove(m);
+			}
+		}
                 //unassign M from all events
                 synchronized (servisesToEvents){
                     Iterator<Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>>> itr = servisesToEvents.entrySet().iterator();
@@ -122,27 +123,26 @@ public class MessageBusImpl implements MessageBus {
                 }
                 //unassign M from all brodcasts
                 synchronized (servisesToBrodcasts){
-                    Iterator<Map.Entry<Class<? extends Message>, ConcurrentSkipListSet<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
+                    Iterator<Map.Entry<Class<? extends Message>, Vector<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
 
                     while(itr.hasNext())
                     {
-                        Map.Entry<Class<? extends Message>, ConcurrentSkipListSet<MicroService>> entry = itr.next();
+                        Map.Entry<Class<? extends Message>, Vector<MicroService>> entry = itr.next();
                         if(entry.getValue().contains(m))
                             entry.getValue().remove(m);
                         itr.remove();
                     }
                 }
-        }
+
     }
 
 	@Override
 	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (missionsToService) {
+		synchronized (missionsToService) { //TODO: should i check if the microservice is available?
 			while (missionsToService.get(m).isEmpty() == true) {
-				wait();
+				missionsToService.wait();
 			}
-			notifyAll();
 			return missionsToService.get(m).take();
 		}
 	}
