@@ -31,12 +31,16 @@ public class FutureTest {
     }
 
     @Test
+    //@PRE: @param!=null
+    //@POST: get() != null
     public void resolve() {
         future.resolve(new OrderReceipt(1, "seller", 1, "h", 30, 4,1, 2));
         assertNotNull(future.get(10, TimeUnit.SECONDS));
     }
 
     @Test
+    //@PRE: none
+    //@POST: none
     public void isDone() {
      assertFalse(future.isDone());
      future.resolve(new OrderReceipt(1, "seller", 1, "h", 30, 4,1, 2));
@@ -44,6 +48,8 @@ public class FutureTest {
     }
 
     @Test
+    //@PRE: none
+    //@POST: none
     public void get1() {
         future.resolve(new OrderReceipt(1, "seller", 1, "h", 30, 4,1, 2));
         assertNotNull(future.get(10, TimeUnit.SECONDS));

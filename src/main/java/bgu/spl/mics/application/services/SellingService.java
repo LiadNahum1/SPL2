@@ -1,10 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.*;
-import bgu.spl.mics.Messages.BookOrderEvent;
-import bgu.spl.mics.Messages.CheckAvailabilityEvent;
-import bgu.spl.mics.Messages.FiftyPercentDiscount;
-import bgu.spl.mics.Messages.TakeBookEvent;
+import bgu.spl.mics.Messages.*;
 import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
@@ -41,9 +38,11 @@ public class SellingService extends MicroService {
 	}
     //subscribe to BookOrderEvent
     private void subscribeOrderBookEvent(){
-        subscribeEvent(BookOrderEvent.class, event -> {
+        subscribeEvent(BookOrderEvent.class, event-> {
             synchronized (this) {
                 synchronized (event.getCustomer()) {
+                    Future<Integer> processTickFuture = sendEvent(new CurrentTickEvet());
+                    Integer processTick = processTickFuture.get();
                     //check availability
                     Future<Boolean> futureObj = (Future<Boolean>) sendEvent(new CheckAvailabilityEvent(event.getBook()));
                     Boolean result = futureObj.get(); //blocking method until the Future is resolved
@@ -61,10 +60,10 @@ public class SellingService extends MicroService {
                             //take the book
                             sendEvent(new TakeBookEvent(b.getBookTitle()));
                             //TODO: add event that take the book
-                            OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), 1,1,1);
+                            Future<Integer> issuedTickFuture = sendEvent(new CurrentTickEvet());
+                            Integer issuedTick = issuedTickFuture.get();
+                            OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), 1, issuedTick, processTick);
                             complete(event, receipt);
-                            //int orderId, String seller,int customerId, String bookTitle,int price, int issuedTick,
-                            //int orderTick, int proccessTick
                         }
                         else {complete(event, null);}
                     }

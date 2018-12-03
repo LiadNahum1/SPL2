@@ -18,6 +18,7 @@ import java.util.Vector;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class Inventory {
+	private static Inventory inventory = null;
 	private Vector<BookInventoryInfo> books;
 	private Inventory(){
 		this.books = new Vector<>();
@@ -26,7 +27,10 @@ public class Inventory {
      * Retrieves the single instance of this class.
      */
 	public static Inventory getInstance() {
-		return new Inventory();
+		if(inventory == null)
+			inventory = new Inventory();
+		return inventory;
+
 	}
 	
 	/**
@@ -55,7 +59,7 @@ public class Inventory {
 	public OrderResult take (String book) {
 		synchronized (books) {
 			for (BookInventoryInfo bookInfo : books) {
-				if (bookInfo.getBookTitle().equals(book)) {
+				if (bookInfo.getBookTitle().equals(book) & bookInfo.getAmountInInventory() > 0) {
 					bookInfo.reduceAmountInInventory();
 					return OrderResult.SUCCESSFULLY_TAKEN;
 				}
@@ -75,7 +79,7 @@ public class Inventory {
 	public int checkAvailabiltyAndGetPrice(String book) {
 		synchronized (books) {
 			for (BookInventoryInfo bookInfo : books) {
-				if (bookInfo.getAmountInInventory() > 0) { //TODO:check this one
+				if (bookInfo.getBookTitle().equals(book) & bookInfo.getAmountInInventory() > 0) { //TODO:check this one
 					return bookInfo.getPrice();
 				}
 			}

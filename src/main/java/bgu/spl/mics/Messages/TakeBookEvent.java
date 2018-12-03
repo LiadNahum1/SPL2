@@ -2,7 +2,7 @@ package bgu.spl.mics.Messages;
 
 import bgu.spl.mics.application.passiveObjects.OrderResult;
 
-public class TakeBookEvent implements FiftyPercentDiscount.Event<OrderResult> {
+public class TakeBookEvent implements Event<OrderResult> {
     private String bookName;
     public TakeBookEvent(String bookName){
         this.bookName = bookName;
