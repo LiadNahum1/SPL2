@@ -84,7 +84,7 @@ public class MessageBusImpl implements MessageBus {
         synchronized (futersOfEvents) {
             Future<T> fu = new Future<>();
             futersOfEvents.put(e, fu);
-            fu.notifyAll();
+            notifyAll();
             return fu;
         }
 
@@ -138,7 +138,7 @@ public class MessageBusImpl implements MessageBus {
 			while (missionsToService.get(m).isEmpty() == true) {
 				wait();
 			}
-			m.notifyAll();
+			notifyAll();
 			return missionsToService.get(m).take();
 		}
 	}
