@@ -169,8 +169,9 @@ public abstract class MicroService implements Runnable {
                 function.call(message);
             }
             catch(Exception e){}
-            System.out.println("NOT IMPLEMENTED!!!"); //TODO: you should delete this line :)
+
         }
+        messageBus.unregister(this);
 
     }
 

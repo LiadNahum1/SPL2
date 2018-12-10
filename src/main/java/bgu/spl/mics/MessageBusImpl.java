@@ -4,10 +4,7 @@ import bgu.spl.mics.Messages.Broadcast;
 import bgu.spl.mics.Messages.Event;
 import bgu.spl.mics.Messages.Message;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -38,14 +35,14 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		synchronized(servisesToEvents) { //TODO:check if needed
-			if (servisesToEvents.contains(type)) { //if the event already as a servise then add this to the queueu
+			if (servisesToEvents.containsKey(type)) { //if the event already as a servise then add this to the queueu
 				servisesToEvents.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
 				BlockingQueue<MicroService> queue = new LinkedBlockingQueue<>();
 				queue.add(m);
 				servisesToEvents.put(type, queue);
-				System.out.println("1");
+
 			}
 		}
 		}
@@ -53,7 +50,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		synchronized(servisesToBrodcasts) { //TODO:check if needed
-			if (servisesToBrodcasts.contains(type)) { //if the event already as a servise then add this to the list
+			if (servisesToBrodcasts.containsKey(type)) { //if the event already as a servise then add this to the list
 				servisesToBrodcasts.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
@@ -72,12 +69,13 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void sendBroadcast(Broadcast b) {
 		synchronized (servisesToBrodcasts) {
-			if (servisesToBrodcasts.get(b) != null) {
-				Iterator itr = servisesToBrodcasts.get(b).iterator();
+			if (servisesToBrodcasts.get(b.getClass()) != null) {
+				Iterator itr = servisesToBrodcasts.get(b.getClass()).iterator();
 				while (itr.hasNext()) {
 					synchronized (missionsToService) {
-						System.out.println("hii");
-						missionsToService.get(itr.next()).add(b);
+					missionsToService.get(itr.next()).add(b);
+					missionsToService.notifyAll();
+
 					}
 				}
 			}
@@ -114,35 +112,27 @@ public class MessageBusImpl implements MessageBus {
 	public void unregister(MicroService m) {
         //TODO:check if needed
 		synchronized (missionsToService) {
-			if (missionsToService.contains(m)) {
+			if (missionsToService.containsKey(m)) {
 				//remove m from servises queue
 				missionsToService.remove(m);
 			}
 		}
                 //unassign M from all events
                 synchronized (servisesToEvents){
-                    Iterator<Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>>> itr = servisesToEvents.entrySet().iterator();
+					Set<Class<? extends Message>> keys = servisesToEvents.keySet();
+					for(Class<? extends Message> classMsg : keys){
+						if(servisesToEvents.get(classMsg).contains(m))
+							servisesToEvents.get(classMsg).remove(m);
+					}
 
-                    while(itr.hasNext())
-                    {
-                        Map.Entry<Class<? extends Message>, BlockingQueue<MicroService>> entry = itr.next();
-                        if(entry.getValue().contains(m))
-                            entry.getValue().remove(m);
-                        itr.remove();
-                    }
                 }
                 //unassign M from all brodcasts
                 synchronized (servisesToBrodcasts){
-                    Iterator<Map.Entry<Class<? extends Message>, Vector<MicroService>>> itr = servisesToBrodcasts.entrySet().iterator();
-
-                    while(itr.hasNext())
-                    {
-                        Map.Entry<Class<? extends Message>, Vector<MicroService>> entry = itr.next();
-                        if(entry.getValue().contains(m))
-                            entry.getValue().remove(m);
-                        itr.remove();
-                    }
-                }
+					Set<Class<? extends Message>> keys = servisesToBrodcasts.keySet();
+					for(Class<? extends Message> classMsg : keys){
+						if(servisesToBrodcasts.get(classMsg).contains(m))
+							servisesToBrodcasts.get(classMsg).remove(m);
+					}                }
 
     }
 
