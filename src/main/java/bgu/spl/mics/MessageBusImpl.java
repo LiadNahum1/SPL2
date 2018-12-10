@@ -25,7 +25,12 @@ public class MessageBusImpl implements MessageBus {
 	private static class SingletonHolder {
 		private static MessageBusImpl
 				instance = new MessageBusImpl();}
-	private MessageBusImpl() {}
+	private MessageBusImpl() {
+		missionsToService = new ConcurrentHashMap<>();
+		servisesToEvents = new ConcurrentHashMap<>();
+		servisesToBrodcasts = new ConcurrentHashMap<>();
+		futersOfEvents = new ConcurrentHashMap<>();
+	}
 	public static MessageBusImpl getInstance() {
 		return SingletonHolder.instance;
 	}
@@ -40,6 +45,7 @@ public class MessageBusImpl implements MessageBus {
 				BlockingQueue<MicroService> queue = new LinkedBlockingQueue<>();
 				queue.add(m);
 				servisesToEvents.put(type, queue);
+				System.out.println("1");
 			}
 		}
 		}
@@ -65,11 +71,14 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		synchronized (servisesToBrodcasts){
-		Iterator itr = servisesToBrodcasts.get(b).iterator();
-			while(itr.hasNext()){
-				synchronized (missionsToService) {
-					missionsToService.get(itr.next()).add(b);
+		synchronized (servisesToBrodcasts) {
+			if (servisesToBrodcasts.get(b) != null) {
+				Iterator itr = servisesToBrodcasts.get(b).iterator();
+				while (itr.hasNext()) {
+					synchronized (missionsToService) {
+						System.out.println("hii");
+						missionsToService.get(itr.next()).add(b);
+					}
 				}
 			}
 		}
@@ -83,15 +92,16 @@ public class MessageBusImpl implements MessageBus {
 		synchronized (futersOfEvents) {
            futersOfEvents.put(e, fu);
         }
-		MicroService execute = servisesToEvents.get(e.getClass()).poll(); //this queue will not be deleted
-		servisesToEvents.get(e.getClass()).add(execute);
-		synchronized (missionsToService) {
-			missionsToService.get(execute).add(e); //should i synchronize this?
-			missionsToService.notifyAll();
+        if(servisesToEvents.get(e.getClass())!= null) {
+			MicroService execute = servisesToEvents.get(e.getClass()).poll(); //this queue will not be deleted
+			servisesToEvents.get(e.getClass()).add(execute);
+			synchronized (missionsToService) {
+				missionsToService.get(execute).add(e); //should i synchronize this?
+				missionsToService.notifyAll();
+			}
+			return fu;
 		}
-		return fu;
-
-
+		else return null;
 	}
 
 	@Override
