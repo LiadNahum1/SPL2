@@ -21,7 +21,6 @@ public class ResourceService extends MicroService{
 
 	@Override
 	protected void initialize() {
-
 	}
 
 }
