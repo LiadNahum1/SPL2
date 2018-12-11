@@ -1,17 +1,17 @@
 package bgu.spl.mics.Messages;
 
-import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
+
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 
 public class BookOrderEvent implements Event<OrderReceipt>{
     private Customer customer;
-    private BookInventoryInfo book;
-    public static int orderId = 0;
-    public BookOrderEvent(Customer c, BookInventoryInfo book){
+    private String bookTitle;
+    private int tick; //time that the BookOrderEvent is sent
+    public BookOrderEvent(Customer c, String bookTitle, int tick){
         this.customer = c;
-        this.book= book;
-        orderId = orderId + 1;
+        this.bookTitle= bookTitle;
+        this.tick = tick;
 
     }
 
@@ -19,11 +19,11 @@ public class BookOrderEvent implements Event<OrderReceipt>{
         return this.customer;
     }
 
-    public BookInventoryInfo getBook(){
-        return this.book;
+    public String getBookTitle(){
+        return this.bookTitle;
     }
 
-    public int getOrderId(){
-        return orderId;
+    public int getTick(){
+        return this.tick;
     }
 }

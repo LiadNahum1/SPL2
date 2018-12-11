@@ -22,15 +22,15 @@ public class MoneyRegister {
 		this.totalSum = 0;
 	}
 	//thread safe singelton
-	private static class SingletonHolder1 {
-		private static MoneyRegister
-				instance = new MoneyRegister();}
+	private static class SingletonHolderMoney {
+		private static MoneyRegister instance = new MoneyRegister();
+	}
 
 	/**
      * Retrieves the single instance of this class.
      */
 	public static MoneyRegister getInstance() {
-			return MoneyRegister.SingletonHolder1.instance;
+			return SingletonHolderMoney.instance;
 
 	}
 	

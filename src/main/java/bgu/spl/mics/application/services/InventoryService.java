@@ -20,7 +20,6 @@ public class InventoryService extends MicroService{
 	private Inventory inventory;
 	public InventoryService() {
 		super("Inventory");
-		// TODO Implement this
 		inventory = Inventory.getInstance();
 	}
 
@@ -30,24 +29,14 @@ public class InventoryService extends MicroService{
 
 		//subscribes to CheckAvailability Event
 		subscribeEvent(CheckAvailabilityEvent.class, event -> {
-			int price = inventory.checkAvailabiltyAndGetPrice(event.getBook().getBookTitle());
-			if(price != -1){
-				complete(event, true);
-			}
-			else{
-				complete(event, false);
-			}
-				terminate();
+			int price = inventory.checkAvailabiltyAndGetPrice(event.getBookTitle());
+			complete(event, price);
 		});
 
 		//subscribes to TakeBook Event
 		subscribeEvent(TakeBookEvent.class, event -> {
-			synchronized (inventory) {
-				OrderResult orderRe =inventory.take(event.getBookName());
-				complete(event, orderRe);
-			}
-
-			terminate();
+			OrderResult orderRe =inventory.take(event.getBookTitle());
+			complete(event, orderRe);
 		});
 	}
 

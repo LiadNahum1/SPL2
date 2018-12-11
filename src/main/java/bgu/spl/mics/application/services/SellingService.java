@@ -2,9 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.*;
 import bgu.spl.mics.Messages.*;
-import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
-import bgu.spl.mics.application.passiveObjects.Customer;
-import bgu.spl.mics.application.passiveObjects.MoneyRegister;
+import bgu.spl.mics.application.passiveObjects.*;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -36,27 +34,30 @@ public class SellingService extends MicroService {
     private void subscribeOrderBookEvent(){
         subscribeEvent(BookOrderEvent.class, event-> {
             //check availability and get price
-            Future<Integer> futureObj = (Future<Boolean>) sendEvent(new CheckAvailabilityEvent(event.getBook()));
-            //Boolean result = futureObj.get(); //blocking method until the Future is resolved
-            //if (result) {
-            Customer c = event.getCustomer();
-            BookInventoryInfo b = event.getBook();
+            Integer bookPrice = sendEvent(new CheckAvailabilityEvent(event.getBookTitle())).get();
+            //if book is available
+            if(bookPrice != -1) {
+                Customer customer = event.getCustomer();
+                synchronized (customer.getMoneyLock()){ //TODO
+                    int amountOfMoney = customer.getAvailableCreditAmount();
+                    if(amountOfMoney >= bookPrice){
+                        moneyReg.chargeCreditCard(customer, bookPrice); //charging customer
+                        //take the book
+                        Future<OrderResult> sucessfulTaken = sendEvent(new TakeBookEvent(event.getBookTitle()));
+                        //if succeed
+                        if(sucessfulTaken.get() == OrderResult.SUCCESSFULLY_TAKEN)
+                        {
+                            OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
+                                    this.currentTick, event.getTick(), this.currentTick);
+                            complete(event, receipt);
+                        }
+                        else{complete(event, null);}
+                    }
+                    else{complete(event, null);}
 
-            int price = b.getPrice();
-
-            //check if customer has enough money
-            if (c.getAvailableCreditAmount() >= price) {
-                moneyReg.chargeCreditCard(c, price); //charging customer
-                //take the book
-                sendEvent(new TakeBookEvent(b.getBookTitle()));
-                //TODO: add event that take the book
-                // OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), 1, issuedTick, processTick);
-                //  complete(event, receipt);
-            } else {
-                complete(event, null);
+                }
             }
-        //}
-          //  else{complete(event, null);}
+            else{complete(event, null);}
         });
     }
     //subscribe to TickBroadcast

@@ -17,6 +17,7 @@ public class Customer {
 	private List<OrderReceipt> receipts;
 	private int creditCard;
 	private int availableAmountInCreditCard;
+	private Object moneyLock;
 	public Customer(int id, String name, String address, int distance, int creditCard, int availableAmountInCreditCard)
 	{
 		this.id = id;
@@ -26,6 +27,7 @@ public class Customer {
 		this.receipts = new LinkedList<>();
 		this.creditCard = creditCard;
 		this.availableAmountInCreditCard = availableAmountInCreditCard;
+		this.moneyLock = new Object();
 	}
 	/**
      * Retrieves the name of the customer.
@@ -71,7 +73,9 @@ public class Customer {
      * @return Amount of money left.   
      */
 	public int getAvailableCreditAmount() {
-		return this.availableAmountInCreditCard;
+		synchronized (moneyLock) {
+			return this.availableAmountInCreditCard;
+		}
 	}
 	
 	/**
@@ -83,6 +87,14 @@ public class Customer {
 
 	//assumes custimer has enough money
 	public void chargeCreditCard(int amount){
-		this.availableAmountInCreditCard = this.availableAmountInCreditCard - amount;
+		synchronized (moneyLock) {
+			this.availableAmountInCreditCard = this.availableAmountInCreditCard - amount;
+		}
+
+	}
+
+	//an object to lock the availableAmountInCreditCard
+	public Object getMoneyLock(){
+		return this.moneyLock;
 	}
 }
