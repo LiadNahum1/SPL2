@@ -50,6 +50,7 @@ public class SellingService extends MicroService {
                             OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
                                     this.currentTick, event.getTick(), this.currentTick);
                             complete(event, receipt);
+                            moneyReg.file(receipt); //saves receipt in money register
                         }
                         else{complete(event, null);}
                     }

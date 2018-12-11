@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Messages.DeliveryEvent;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -14,13 +15,13 @@ import bgu.spl.mics.MicroService;
 public class LogisticsService extends MicroService {
 
 	public LogisticsService() {
-		super("Change_This_Name");
+		super("LogisticsService");
 		// TODO Implement this
 	}
 
 	@Override
 	protected void initialize() {
-		// TODO Implement this
+		subscribeEvent(DeliveryEvent.class, event->);
 		
 	}
 
