@@ -1,5 +1,7 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Messages.AcquireVehicleEvent;
+import bgu.spl.mics.Messages.ReleaseVehicleEvent;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
@@ -21,6 +23,13 @@ public class ResourceService extends MicroService{
 
 	@Override
 	protected void initialize() {
+		subscribeEvent(AcquireVehicleEvent.class ,event ->{
+			holder.acquireVehicle();
+		} );
+
+		subscribeEvent(ReleaseVehicleEvent.class , event ->{
+			holder.releaseVehicle(event.getVehicle());
+		} );
 	}
 
 }

@@ -46,7 +46,10 @@ public class ResourcesHolder {
      * 			{@link DeliveryVehicle} when completed.   
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
-	sem.tryAcquire();
+		try{
+		sem.acquire();
+		}
+		catch (Exception e){}
 	 Future <DeliveryVehicle> fu  = new Future<>();
 	 fu.resolve(deliveryVehicles.remove(0));
 	 return fu;
