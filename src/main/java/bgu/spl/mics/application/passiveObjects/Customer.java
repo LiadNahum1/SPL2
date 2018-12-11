@@ -77,7 +77,8 @@ public class Customer {
 			return this.availableAmountInCreditCard;
 		}
 	}
-	
+
+	public void addRecipt(OrderReceipt or){receipts.add(or);}
 	/**
      * Retrieves this customers credit card serial number.    
      */
