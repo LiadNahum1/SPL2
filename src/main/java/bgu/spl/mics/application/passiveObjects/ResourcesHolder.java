@@ -4,6 +4,7 @@ import bgu.spl.mics.Future;
 import com.sun.corba.se.impl.presentation.rmi.DynamicMethodMarshallerImpl;
 
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 
 /**
  * Passive object representing the resource manager.
@@ -16,7 +17,7 @@ import java.util.Vector;
  */
 public class ResourcesHolder {
 	private Vector<DeliveryVehicle> deliveryVehicles;
-
+	private Semaphore sem;
 	//thread safe singelton
 	private static class SingletonHolderVehicle
 	{
@@ -24,6 +25,8 @@ public class ResourcesHolder {
 	}
 	private ResourcesHolder() {
 		this.deliveryVehicles = new Vector<>();
+
+			sem = new Semaphore(deliveryVehicles.size());
 	}
 
 	/**
@@ -43,8 +46,10 @@ public class ResourcesHolder {
      * 			{@link DeliveryVehicle} when completed.   
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
-		//TODO: Implement this
-		return null;
+	sem.tryAcquire();
+	 Future <DeliveryVehicle> fu  = new Future<>();
+	 fu.resolve(deliveryVehicles.remove(0));
+	 return fu;
 	}
 	
 	/**
@@ -54,7 +59,8 @@ public class ResourcesHolder {
      * @param vehicle	{@link DeliveryVehicle} to be released.
      */
 	public void releaseVehicle(DeliveryVehicle vehicle) {
-		//TODO: Implement this
+		deliveryVehicles.add(vehicle);
+		sem.release();
 	}
 	
 	/**
