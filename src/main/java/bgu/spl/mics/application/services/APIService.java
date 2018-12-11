@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Future;
 import bgu.spl.mics.Messages.BookOrderEvent;
+import bgu.spl.mics.Messages.DeliveryEvent;
 import bgu.spl.mics.Messages.TickBroadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.Customer;
@@ -49,7 +50,7 @@ public class APIService extends MicroService{
 		 	 OrderReceipt completed = or.get();
 		 	 if(completed!= null) {
 				 cs.addRecipt(completed);
-
+				 sendEvent(new DeliveryEvent(cs.getAddress(),cs.getDistance()));
 			 }
 		 	 }
 	}

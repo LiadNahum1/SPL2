@@ -18,11 +18,12 @@ public class ResourcesHolder {
 	private Vector<DeliveryVehicle> deliveryVehicles;
 
 	//thread safe singelton
-	private static class SingletonHolderVehicle {
-		private static ResourcesHolder instance = new ResourcesHolder();}
+	private static class SingletonHolderVehicle
+	{
+		private static ResourcesHolder instance = new ResourcesHolder();
+	}
 	private ResourcesHolder() {
 		this.deliveryVehicles = new Vector<>();
-
 	}
 
 	/**
