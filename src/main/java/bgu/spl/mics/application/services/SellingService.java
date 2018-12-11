@@ -5,9 +5,6 @@ import bgu.spl.mics.Messages.*;
 import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.MoneyRegister;
-import bgu.spl.mics.application.passiveObjects.OrderReceipt;
-
-import java.util.Vector;
 
 /**
  * Selling service in charge of taking orders from customers.
@@ -21,67 +18,54 @@ import java.util.Vector;
  */
 public class SellingService extends MicroService {
 	private MoneyRegister moneyReg;
-	private Vector<BookInventoryInfo> booksOnDiscount;
+	private int currentTick;
 
 	public SellingService() {
 		super("SellingService");
-		// TODO Implement this
 		moneyReg = MoneyRegister.getInstance();
-		booksOnDiscount = new Vector<>();
+		this.currentTick = 0;
 	}
 
 	@Override
 	protected void initialize() {
 		System.out.println("Event Handler " + getName() + " started");
         subscribeOrderBookEvent();
-		subscribeFiftyPercentDiscountEvent();
+        subscribeTickBroadcast();
 	}
     //subscribe to BookOrderEvent
     private void subscribeOrderBookEvent(){
         subscribeEvent(BookOrderEvent.class, event-> {
-            synchronized (this) {
-                synchronized (event.getCustomer()) {
-                    Future<Integer> processTickFuture = sendEvent(new CurrentTickEvet());
-                    Integer processTick = processTickFuture.get();
-                    //check availability
-                    Future<Boolean> futureObj = (Future<Boolean>) sendEvent(new CheckAvailabilityEvent(event.getBook()));
-                    Boolean result = futureObj.get(); //blocking method until the Future is resolved
-                    if (result) {
-                        Customer c = event.getCustomer();
-                        BookInventoryInfo b = event.getBook();
-                        //check if there is a discount on the book
-                        int price = b.getPrice();
-                        if (this.booksOnDiscount.contains(b)) {
-                            price = b.getPrice() / 2; //TODO:: make it double?
-                        }
-                        //check if customer has enough money
-                        if (c.getAvailableCreditAmount() >= price) {
-                            moneyReg.chargeCreditCard(c, price); //charging customer
-                            //take the book
-                            sendEvent(new TakeBookEvent(b.getBookTitle()));
-                            //TODO: add event that take the book
-                            Future<Integer> issuedTickFuture = sendEvent(new CurrentTickEvet());
-                            Integer issuedTick = issuedTickFuture.get();
-                            OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), 1, issuedTick, processTick);
-                            complete(event, receipt);
-                        }
-                        else {complete(event, null);}
-                    }
-                    else{complete(event, null);}
-                }
+            //check availability and get price
+            Future<Integer> futureObj = (Future<Boolean>) sendEvent(new CheckAvailabilityEvent(event.getBook()));
+            //Boolean result = futureObj.get(); //blocking method until the Future is resolved
+            //if (result) {
+            Customer c = event.getCustomer();
+            BookInventoryInfo b = event.getBook();
+
+            int price = b.getPrice();
+
+            //check if customer has enough money
+            if (c.getAvailableCreditAmount() >= price) {
+                moneyReg.chargeCreditCard(c, price); //charging customer
+                //take the book
+                sendEvent(new TakeBookEvent(b.getBookTitle()));
+                //TODO: add event that take the book
+                // OrderReceipt receipt = new OrderReceipt(event.getOrderId(), getName(), c.getId(), b.getBookTitle(), b.getPrice(), 1, issuedTick, processTick);
+                //  complete(event, receipt);
+            } else {
+                complete(event, null);
             }
-            //terminate();
+        //}
+          //  else{complete(event, null);}
         });
     }
-    //subscribe to FiftyPercentDiscount Event
-    private void subscribeFiftyPercentDiscountEvent(){
-        subscribeBroadcast(FiftyPercentDiscount.class, event->{
-            synchronized (event.getBooksOnDiscount()) {
-                this.booksOnDiscount = event.getBooksOnDiscount();
-            }
-            //terminate();
+    //subscribe to TickBroadcast
+    private void subscribeTickBroadcast(){
+	    subscribeBroadcast(TickBroadcast.class, broadcast-> {
+	        this.currentTick = broadcast.getCurrentTick();
         });
     }
+
 
 }
 

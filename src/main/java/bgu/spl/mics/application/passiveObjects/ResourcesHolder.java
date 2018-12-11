@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
+import com.sun.corba.se.impl.presentation.rmi.DynamicMethodMarshallerImpl;
 
 import java.util.Vector;
 
@@ -21,6 +22,7 @@ public class ResourcesHolder {
 		private static ResourcesHolder instance = new ResourcesHolder();}
 	private ResourcesHolder() {
 		this.deliveryVehicles = new Vector<>();
+
 	}
 
 	/**

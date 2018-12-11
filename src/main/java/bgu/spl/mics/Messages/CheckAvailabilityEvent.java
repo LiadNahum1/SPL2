@@ -2,14 +2,15 @@ package bgu.spl.mics.Messages;
 
 import bgu.spl.mics.application.passiveObjects.BookInventoryInfo;
 
-public class CheckAvailabilityEvent implements Event<Boolean> {
-        private BookInventoryInfo book;
-        public CheckAvailabilityEvent(BookInventoryInfo book){
-            this.book = book;
+//The event checks if specific book is available and returns its price
+public class CheckAvailabilityEvent implements Event<Integer> {
+        private String bookTitle;
+        public CheckAvailabilityEvent(String bookTitle){
+            this.bookTitle = bookTitle;
         }
 
-        public BookInventoryInfo getBook(){
-            return this.book;
+        public String getBookTitle(){
+            return this.bookTitle;
         }
     }
 
