@@ -17,6 +17,11 @@
             <artifactId>junit</artifactId>
       	    <version>4.12</version>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
         <!--  Gson: Java to Json conversion -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -24,5 +29,6 @@
             <version>2.8.5</version>
             <scope>compile</scope>
         </dependency>
-  </dependencies>	
+
+    </dependencies>
 </project>
