@@ -16,7 +16,7 @@ public class BookStoreRunner {
         try(Reader reader = new InputStreamReader(new FileInputStream("input.json"), "UTF-8")){
             Gson gson = new GsonBuilder().create();
             InputClass input = gson.fromJson(reader, InputClass.class);
-            //System.out.println(p);
+            System.out.println(input.getServices().getTime().getSpeed());
         }
         catch(Exception e){}
     }
