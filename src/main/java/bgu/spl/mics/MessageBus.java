@@ -2,7 +2,6 @@ package bgu.spl.mics;
 
 import bgu.spl.mics.Messages.Broadcast;
 import bgu.spl.mics.Messages.Event;
-import bgu.spl.mics.Messages.FiftyPercentDiscount;
 import bgu.spl.mics.Messages.Message;
 
 /**

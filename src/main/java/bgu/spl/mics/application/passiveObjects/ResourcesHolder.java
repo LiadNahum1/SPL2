@@ -1,7 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
 import bgu.spl.mics.Future;
-import com.sun.corba.se.impl.presentation.rmi.DynamicMethodMarshallerImpl;
 
 import java.util.Vector;
 import java.util.concurrent.Semaphore;
@@ -16,7 +15,7 @@ import java.util.concurrent.Semaphore;
  * You can add ONLY private methods and fields to this class.
  */
 public class ResourcesHolder {
-	private Vector<DeliveryVehicle> deliveryVehicles;
+	private Vector<DeliveryVehicle> vehicles;
 	private Semaphore sem;
 	//thread safe singelton
 	private static class SingletonHolderVehicle
@@ -24,7 +23,7 @@ public class ResourcesHolder {
 		private static ResourcesHolder instance = new ResourcesHolder();
 	}
 	private ResourcesHolder() {
-		this.deliveryVehicles = new Vector<>();
+		this.vehicles = new Vector<>();
 }
 
 	/**
@@ -49,7 +48,7 @@ public class ResourcesHolder {
 		}
 		catch (Exception e){}
 	 Future <DeliveryVehicle> fu  = new Future<>();
-	 fu.resolve(deliveryVehicles.remove(0));
+	 fu.resolve(this.vehicles.remove(0));
 	 return fu;
 	}
 	
@@ -60,7 +59,7 @@ public class ResourcesHolder {
      * @param vehicle	{@link DeliveryVehicle} to be released.
      */
 	public void releaseVehicle(DeliveryVehicle vehicle) {
-		deliveryVehicles.add(vehicle);
+		this.vehicles.add(vehicle);
 		sem.release();
 	}
 	
@@ -70,11 +69,11 @@ public class ResourcesHolder {
      * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
      */
 	public void load(DeliveryVehicle[] vehicles) {
-		synchronized (deliveryVehicles) {
+		synchronized (this.vehicles) {
 			for (int i = 0; i < vehicles.length; i = i + 1) {
-				deliveryVehicles.add(vehicles[i]);
+				this.vehicles.add(vehicles[i]);
 			}
-			sem = new Semaphore(deliveryVehicles.size());
+			sem = new Semaphore(this.vehicles.size());
 		}
 	}
 

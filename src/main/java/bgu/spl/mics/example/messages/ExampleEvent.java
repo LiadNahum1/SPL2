@@ -1,7 +1,6 @@
 package bgu.spl.mics.example.messages;
 
 import bgu.spl.mics.Messages.Event;
-import bgu.spl.mics.Messages.FiftyPercentDiscount;
 
 public class ExampleEvent implements Event<String> {
 
