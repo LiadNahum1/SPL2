@@ -18,10 +18,10 @@ public class SellingService extends MicroService {
     private MoneyRegister moneyReg;
     private int currentTick;
 
-    public SellingService() {
-        super("SellingService");
+    public SellingService(int num) {
+        super("SellingService" + num);
         moneyReg = MoneyRegister.getInstance();
-        this.currentTick = 0;
+        this.currentTick = 1;
     }
 
     @Override

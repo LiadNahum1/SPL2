@@ -15,7 +15,7 @@ import java.util.Vector;
  * You can add ONLY private fields and methods to this class as you see fit.
  */
 public class MoneyRegister {
-	private Vector<OrderReceipt> orderReceipt;
+	private Vector<OrderReceipt> orderReceipt; //treadSafe
 	private int totalSum;
 	private MoneyRegister(){
 		this.orderReceipt = new Vector<>();
@@ -42,7 +42,7 @@ public class MoneyRegister {
 	public void file (OrderReceipt r) {
 		synchronized (this) {
 			orderReceipt.add(r);
-			this.totalSum = this.totalSum + r.getPrice();
+			this.totalSum = this.totalSum + r.getPrice();//TODO:whay syncall
 		}
 	}
 	
