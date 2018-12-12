@@ -74,7 +74,19 @@ public class MoneyRegister {
 			FileOutputStream fileOut = new FileOutputStream(filename);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			out.writeObject(orderReceipt);
-			out.close();
+			fileOut.close();
+			System.out.printf("Serialized data is saved in " + filename);
+		} catch (IOException i) {
+			i.printStackTrace();
+		}
+	}
+
+	public void printMoneyRegister(String filename) {
+		try {
+			printOrderReceipts(filename);
+			FileOutputStream fileOut = new FileOutputStream(filename);
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(new Integer(this.totalSum));
 			fileOut.close();
 			System.out.printf("Serialized data is saved in " + filename);
 		} catch (IOException i) {

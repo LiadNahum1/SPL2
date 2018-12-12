@@ -19,9 +19,16 @@ import java.util.concurrent.CountDownLatch;
  */
 public class BookStoreRunner {
     public static void main(String[] args) {
-        try(Reader reader = new InputStreamReader(new FileInputStream("input.json"), "UTF-8")){
-            Gson gson = new GsonBuilder().create();
-            InputClass input = gson.fromJson(reader, InputClass.class);
+        Gson gson = null;
+        InputClass input = null;
+        try(Reader reader = new InputStreamReader(new FileInputStream(args[0]), "UTF-8")) {
+            gson = new GsonBuilder().create();
+            input = gson.fromJson(reader, InputClass.class);
+        }
+        catch(Exception e){
+            System.out.println("couldnt read");
+        }
+
             //create inventory
             Inventory inv = Inventory.getInstance();
             inv.load(input.getInitialInventory());
@@ -59,10 +66,9 @@ public class BookStoreRunner {
             for (int i=0; i< customers.length; i=i+1){
                 CustomerData cus = customerData[i];
                 customers[i] = new Customer(cus.getId(), cus.getName(), cus.getAddress(), cus.getDistance(), cus.getCreditCard().getNumber(), cus.getCreditCard().getAmount());
+
                 apiServices[i] = new APIService(customers[i], cus.getOrderSchedule(),doneSignal);
             }
-
-            //TODO: make sure all sevises has been initialized before the first broadcast started
             //start running all threads
             Vector<Thread> v = new Vector<>();
             for (int i = 0; i<sellingServices.length; i++){
@@ -80,14 +86,17 @@ public class BookStoreRunner {
             for (int i=0; i< apiServices.length; i=i+1){
                 v.add(new Thread(apiServices[i]));
             }
-           for(Thread t : v){
-                t.start();
-           }
-            doneSignal.await();
-            v.add(new Thread(timeService));
             for(Thread t : v){
-                t.join();
+                t.start();
             }
+            try {
+                doneSignal.await();
+                v.add(new Thread(timeService));
+                for (Thread t : v) {
+                    t.join();
+                }
+            }
+            catch (Exception e){System.out.println("interapt");}
             //output files
             HashMap<Integer, Customer> customerHashMap = new HashMap<>();
             for (Customer c: customers){
@@ -98,9 +107,9 @@ public class BookStoreRunner {
             MoneyRegister moneyReg = MoneyRegister.getInstance();
             moneyReg.printOrderReceipts(args[3]); //List<OrderReceipt>
             moneyReg.printOrderReceipts(args[4]); //MoneyRegister
+
         }
-        catch(Exception e){}
-    }
+
 
     public static void printAllCustomers(HashMap<Integer,Customer> customers, String filename) {
         try {
@@ -115,5 +124,3 @@ public class BookStoreRunner {
         }
     }
 }
-
-

@@ -5,7 +5,7 @@ import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
 public class InputClass {
     private BookInventoryInfo [] initialInventory;
-    private VehicleHolder[] initialResource;
+    private VehicleHolder[] initialResources;
     private Services services;
 
     public BookInventoryInfo[] getInitialInventory() {
@@ -13,7 +13,7 @@ public class InputClass {
     }
 
     public VehicleHolder[] getInitialResource() {
-        return initialResource;
+        return initialResources;
     }
 
     public Services getServices() {

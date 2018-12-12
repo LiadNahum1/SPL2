@@ -5,7 +5,7 @@ public class CustomerData {
     private String name;
     private String address;
     private int distance;
-    private CreditCardData CreditCard;
+    private CreditCardData creditCard;
     private OrderSchedule [] orderSchedule;
 
 
@@ -26,7 +26,7 @@ public class CustomerData {
     }
 
     public CreditCardData getCreditCard() {
-        return CreditCard;
+        return creditCard;
     }
 
     public OrderSchedule[] getOrderSchedule() {
