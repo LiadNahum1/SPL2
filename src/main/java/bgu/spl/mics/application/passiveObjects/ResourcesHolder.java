@@ -25,9 +25,7 @@ public class ResourcesHolder {
 	}
 	private ResourcesHolder() {
 		this.deliveryVehicles = new Vector<>();
-
-			sem = new Semaphore(deliveryVehicles.size());
-	}
+}
 
 	/**
      * Retrieves the single instance of this class.
@@ -76,6 +74,7 @@ public class ResourcesHolder {
 			for (int i = 0; i < vehicles.length; i = i + 1) {
 				deliveryVehicles.add(vehicles[i]);
 			}
+			sem = new Semaphore(deliveryVehicles.size());
 		}
 	}
 

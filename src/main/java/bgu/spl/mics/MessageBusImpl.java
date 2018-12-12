@@ -139,7 +139,7 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (missionsToService) { //TODO: should i check if the microservice is available?
+		synchronized (missionsToService) { //TODO: throw the exeption
 			while (missionsToService.get(m).isEmpty() == true) {
 				missionsToService.wait();
 			}
