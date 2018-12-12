@@ -109,7 +109,6 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void unregister(MicroService m) {
-        //TODO:resove futers;
 		//resolves all unfinished missions to be null
 		BlockingQueue<Message> toR = missionsToService.get(m);
 		while (!toR.isEmpty()){

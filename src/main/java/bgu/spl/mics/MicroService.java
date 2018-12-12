@@ -29,7 +29,7 @@ public abstract class MicroService implements Runnable {
     private boolean terminated = false;
     private final String name;
     private MessageBus messageBus = MessageBusImpl.getInstance();
-    private ConcurrentHashMap<Class<? extends Message>, Callback<? extends Message>> messageCallBackHash; //TODO: hash map generic
+    private ConcurrentHashMap<Class<? extends Message>, Callback<? extends Message>> messageCallBackHash;
 
     /**
      * @param name the micro-service name (used mainly for debugging purposes -
@@ -38,8 +38,6 @@ public abstract class MicroService implements Runnable {
     public MicroService(String name) {
         this.name = name;
         this.messageCallBackHash = new ConcurrentHashMap<>();
-        //TODO this is microservice or selling service
-
     }
 
     /**
@@ -155,7 +153,7 @@ public abstract class MicroService implements Runnable {
     }
 
     /**
-     * The entry point of the micro-service. TODO: you must complete this code
+     * The entry point of the micro-service. 
      * otherwise you will end up in an infinite loop.
      */
     @Override
