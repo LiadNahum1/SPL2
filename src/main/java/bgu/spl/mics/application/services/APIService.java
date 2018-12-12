@@ -5,6 +5,7 @@ import bgu.spl.mics.Messages.BookOrderEvent;
 import bgu.spl.mics.Messages.DeliveryEvent;
 import bgu.spl.mics.Messages.TickBroadcast;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.application.OrderSchedule;
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 
@@ -22,15 +23,29 @@ import java.util.concurrent.ConcurrentHashMap;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService{
-	ConcurrentHashMap<Integer,Vector<String>> orderingOrder;
-	Vector<Future<OrderReceipt>> futures;
+	private int timeout;
+	private Customer customer;
+	private int currentTick ;
+	private ConcurrentHashMap<Integer,Vector<String>> orderingBooks;
+	private Vector<Future<OrderReceipt>> futures;
 
-	int timeout;
-	int currentTick = 1;
-	Customer cs;
-	public APIService() {
-		super("Change_This_Name");
-	orderingOrder = new ConcurrentHashMap<>();
+	public APIService(Customer customer, OrderSchedule[] orders) {
+		super("APIService " + customer.getId());
+		this.orderingBooks = new ConcurrentHashMap<>();
+		for(int i=0; i<orders.length; i = i+1){
+			if(orderingBooks.get(orders[i].getTick()) == null){
+				Vector<String> booksInTick = new Vector<>();
+				booksInTick.add(orders[i].getBookTitle());
+				orderingBooks.put(orders[i].getTick(), booksInTick);
+			}
+			else{
+				orderingBooks.get(orders[i].getTick()).add(orders[i].getBookTitle());
+			}
+		}
+		this.customer = customer;
+		//this.timeout = ;
+		this.currentTick = 1;
+		this.futures = new Vector<>();
 	}
 
 	@Override
@@ -39,20 +54,20 @@ public class APIService extends MicroService{
 			this.currentTick = broadcast.getCurrentTick();
 		});
 		 while(this.currentTick < timeout){
-		 	if(orderingOrder.containsKey(currentTick)){
-				Vector<String> orders =  orderingOrder.get(currentTick);
+		 	if(orderingBooks.containsKey(currentTick)){
+				Vector<String> orders =  orderingBooks.get(currentTick);
 				for(String st : orders){
-					futures.add(sendEvent(new BookOrderEvent(cs,st,currentTick)));
+					futures.add(sendEvent(new BookOrderEvent(customer,st,currentTick)));
 				}
 			}
 		 }
-		 for(Future<OrderReceipt> or : futures){
-		 	 OrderReceipt completed = or.get();
-		 	 if(completed!= null) {
-				 cs.addRecipt(completed);
-				 sendEvent(new DeliveryEvent(cs.getAddress(),cs.getDistance()));
+		 for(Future<OrderReceipt> or : futures) {
+			 OrderReceipt completed = or.get();
+			 if (completed != null) {
+				 customer.addRecipt(completed);
+				 sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
 			 }
-		 	 }
+		 }
 	}
 
 }

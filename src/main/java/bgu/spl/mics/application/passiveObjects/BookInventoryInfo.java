@@ -47,7 +47,9 @@ public class BookInventoryInfo {
 	 * Reduce the amount of books of this type in the inventory.
 	 **/
 	public void reduceAmountInInventory() {
-		this.amountInInventory = this.amountInInventory - 1;
+		synchronized (this) {
+			this.amountInInventory = this.amountInInventory - 1;
+		}
 	}
 	
 

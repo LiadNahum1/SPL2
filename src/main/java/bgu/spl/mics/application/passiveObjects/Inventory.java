@@ -43,11 +43,9 @@ public class Inventory {
      * 						of the inventory.
      */
 	public void load (BookInventoryInfo[ ] inventory ) {
-		synchronized (books) { //dont let any other thread interrupt
 			for (int i = 0; i < inventory.length; i = i + 1) {
 				this.books.add(inventory[i]);
 			}
-		}
 	}
 
 	/**
@@ -59,18 +57,21 @@ public class Inventory {
      * 			second should reduce by one the number of books of the desired type.
      */
 	public OrderResult take (String book) {
-		synchronized (books) {
-			for (BookInventoryInfo bookInfo : books) {
-				if (bookInfo.getBookTitle().equals(book) & bookInfo.getAmountInInventory() > 0) {
-					bookInfo.reduceAmountInInventory();
+		BookInventoryInfo currentBook = null;
+		for (BookInventoryInfo bookInfo : books) {
+			if(bookInfo.getBookTitle() == book)
+				currentBook = bookInfo;
+		}
+		if(currentBook != null) {
+			synchronized (currentBook) {
+				if (currentBook.getAmountInInventory() > 0) {
+					currentBook.reduceAmountInInventory();
 					return OrderResult.SUCCESSFULLY_TAKEN;
 				}
 			}
-			return OrderResult.NOT_IN_STOCK; //TODO: synchronized?
 		}
+		return OrderResult.NOT_IN_STOCK;
 	}
-
-
 
 	/**
      * Checks if a certain book is available in the inventory.
@@ -79,14 +80,19 @@ public class Inventory {
      * @return the price of the book if it is available, -1 otherwise.
      */
 	public int checkAvailabiltyAndGetPrice(String book) {
-		synchronized (books) {
-			for (BookInventoryInfo bookInfo : books) {
-				if (bookInfo.getBookTitle().equals(book) & bookInfo.getAmountInInventory() > 0) { //TODO:check this one
-					return bookInfo.getPrice();
+		BookInventoryInfo currentBook = null;
+		for (BookInventoryInfo bookInfo : books) {
+			if(bookInfo.getBookTitle() == book)
+				currentBook = bookInfo;
+		}
+		if(currentBook != null) {
+			synchronized (currentBook) {
+				if (currentBook.getAmountInInventory() > 0) {
+					return currentBook.getPrice();
 				}
 			}
-			return -1;
 		}
+		return -1;
 	}
 	
 	/**
@@ -98,7 +104,6 @@ public class Inventory {
      * This method is called by the main method in order to generate the output.
      */
 	public void printInventoryToFile(String filename){
-		synchronized (books){
 			HashMap<String, Integer> booksHashMap = new HashMap<>();
 			for(BookInventoryInfo bookInfo: books){
 				booksHashMap.put(bookInfo.getBookTitle(), bookInfo.getAmountInInventory());
@@ -113,6 +118,6 @@ public class Inventory {
 			} catch (IOException i) {
 				i.printStackTrace();
 			}
-		}
+
 	}
 }
