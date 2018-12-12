@@ -34,7 +34,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
-		synchronized(servisesToEvents) { //TODO:check if needed
+		synchronized(servisesToEvents) {
 			if (servisesToEvents.containsKey(type)) { //if the event already as a servise then add this to the queueu
 				servisesToEvents.get(type).add(m);
 			} else //create a new queue to this events queueu
@@ -49,7 +49,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
-		synchronized(servisesToBrodcasts) { //TODO:check if needed
+		synchronized(servisesToBrodcasts) {
 			if (servisesToBrodcasts.containsKey(type)) { //if the event already as a servise then add this to the list
 				servisesToBrodcasts.get(type).add(m);
 			} else //create a new queue to this events queueu
@@ -61,7 +61,7 @@ public class MessageBusImpl implements MessageBus {
 		}
 	}
 
-	@Override //TODO:should i synchronize
+	@Override
 	public <T> void complete(Event<T> e, T result) {
 	futersOfEvents.get(e).resolve(result);
 	}
@@ -103,21 +103,21 @@ public class MessageBusImpl implements MessageBus {
 	}
 
 	@Override
-	public void register(MicroService m) { //TODO: should check if try to register twice?
+	public void register(MicroService m) {
         missionsToService.put(m,new LinkedBlockingQueue<>());
-
 	}
 
 	@Override
 	public void unregister(MicroService m) {
-        //TODO:check if needed
-		synchronized (missionsToService) {
-			if (missionsToService.containsKey(m)) {
+        //TODO:resove futers;
+		//resolves all unfinished missions to be null
+		BlockingQueue<Message> toR = missionsToService.get(m);
+		while (!toR.isEmpty()){
+		futersOfEvents.get(toR.remove()).resolve(null);
+		}
 				//remove m from servises queue
 				missionsToService.remove(m);
-			}
-		}
-                //unassign M from all events
+	            //unassign M from all events
                 synchronized (servisesToEvents){
 					Set<Class<? extends Message>> keys = servisesToEvents.keySet();
 					for(Class<? extends Message> classMsg : keys){
@@ -139,7 +139,9 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (missionsToService) { //TODO: throw the exeption
+		synchronized (missionsToService) {
+			if(missionsToService.get(m) == null)
+				throw new IllegalStateException();
 			while (missionsToService.get(m).isEmpty() == true) {
 				missionsToService.wait();
 			}
