@@ -8,5 +8,16 @@ public class InputClass {
     private VehicleHolder[] initialResource;
     private Services services;
 
+    public BookInventoryInfo[] getInitialInventory() {
+        return initialInventory;
+    }
+
+    public VehicleHolder[] getInitialResource() {
+        return initialResource;
+    }
+
+    public Services getServices() {
+        return services;
+    }
 }
 
