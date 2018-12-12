@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Messages.CheckAvailabilityEvent;
+import bgu.spl.mics.Messages.TerminateBroadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.Messages.TakeBookEvent;
 import bgu.spl.mics.application.passiveObjects.Inventory;
@@ -38,6 +39,8 @@ public class InventoryService extends MicroService{
 			OrderResult orderRe =inventory.take(event.getBookTitle());
 			complete(event, orderRe);
 		});
+		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+
 	}
 
 }

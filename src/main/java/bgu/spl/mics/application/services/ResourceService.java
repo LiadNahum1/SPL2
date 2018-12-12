@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 
 import bgu.spl.mics.Messages.AcquireVehicleEvent;
 import bgu.spl.mics.Messages.ReleaseVehicleEvent;
+import bgu.spl.mics.Messages.TerminateBroadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
@@ -30,6 +31,8 @@ public class ResourceService extends MicroService{
 		subscribeEvent(ReleaseVehicleEvent.class , event ->{
 			holder.releaseVehicle(event.getVehicle());
 		} );
+		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+
 	}
 
 }

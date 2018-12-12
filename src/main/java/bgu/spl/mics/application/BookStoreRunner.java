@@ -53,6 +53,41 @@ public class BookStoreRunner {
                 customers[i] = new Customer(cus.getId(), cus.getName(), cus.getAddress(), cus.getDistance(), cus.getCreditCard().getNumber(), cus.getCreditCard().getAmount());
                 apiServices[i] = new APIService(customers[i], cus.getOrderSchedule());
             }
+            
+            //TODO: make sure all sevises has been initialized before the first broadcast started
+            //start running all threads
+            for (int i = 0; i<sellingServices.length; i++){
+                sellingServices[i] = new SellingService(i+1);
+            }
+            for (int i = 0; i<inventoryServices.length; i++){
+                inventoryServices[i] = new InventoryService(i+1);
+            }
+            for (int i = 0; i<logisticsServices.length; i++){
+                logisticsServices[i] = new LogisticsService(i+1);
+            }
+            for (int i = 0; i<resourceServices.length; i++){
+                resourceServices[i] = new ResourceService(i+1);
+            }
+            for (int i=0; i< customers.length; i=i+1){
+
+            }
+            //join all threads to finiah proces
+            for (int i = 0; i<sellingServices.length; i++){
+                sellingServices[i] = new SellingService(i+1);
+            }
+            for (int i = 0; i<inventoryServices.length; i++){
+                inventoryServices[i] = new InventoryService(i+1);
+            }
+            for (int i = 0; i<logisticsServices.length; i++){
+                logisticsServices[i] = new LogisticsService(i+1);
+            }
+            for (int i = 0; i<resourceServices.length; i++){
+                resourceServices[i] = new ResourceService(i+1);
+            }
+            for (int i=0; i< customers.length; i=i+1){
+
+            }
+
 
         }
         catch(Exception e){}

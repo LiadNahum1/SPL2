@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.services;
 
+import bgu.spl.mics.Messages.TerminateBroadcast;
 import bgu.spl.mics.Messages.TickBroadcast;
 import bgu.spl.mics.MicroService;
 
@@ -31,9 +32,12 @@ public class TimeService extends MicroService{
 		this.timer = new Timer();
 		this.timer.schedule(new TimerTask() {
 			@Override
-			public void run() {
+			public void run() {//TODO
 				currentTick = currentTick + 1;
 				sendBroadcast(new TickBroadcast(currentTick));
+				if(currentTick == duration){
+					sendBroadcast(new TerminateBroadcast());
+				}
 			}
 		}, 0, speed);
 	}

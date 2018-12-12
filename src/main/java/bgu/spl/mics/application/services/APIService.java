@@ -3,6 +3,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.Future;
 import bgu.spl.mics.Messages.BookOrderEvent;
 import bgu.spl.mics.Messages.DeliveryEvent;
+import bgu.spl.mics.Messages.TerminateBroadcast;
 import bgu.spl.mics.Messages.TickBroadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.OrderSchedule;
@@ -52,22 +53,22 @@ public class APIService extends MicroService{
 	protected void initialize() {
 		 subscribeBroadcast(TickBroadcast.class, broadcast-> {
 			this.currentTick = broadcast.getCurrentTick();
-		});
-		 while(this.currentTick < timeout){
-		 	if(orderingBooks.containsKey(currentTick)){
-				Vector<String> orders =  orderingBooks.get(currentTick);
-				for(String st : orders){
-					futures.add(sendEvent(new BookOrderEvent(customer,st,currentTick)));
+				if(orderingBooks.containsKey(currentTick)){
+					Vector<String> orders =  orderingBooks.get(currentTick);
+					for(String st : orders){
+						futures.add(sendEvent(new BookOrderEvent(customer,st,currentTick)));
+					}
 				}
-			}
-		 }
-		 for(Future<OrderReceipt> or : futures) {
-			 OrderReceipt completed = or.get();
-			 if (completed != null) {
-				 customer.addRecipt(completed);
-				 sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-			 }
-		 }
+				for(Future<OrderReceipt> or : futures) {
+					OrderReceipt completed = or.get();
+					if (completed != null) {
+						customer.addRecipt(completed);
+						sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
+					}
+				}
+		});
+		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+
 	}
 
 }

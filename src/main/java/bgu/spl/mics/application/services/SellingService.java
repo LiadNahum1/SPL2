@@ -29,6 +29,7 @@ public class SellingService extends MicroService {
         System.out.println("Event Handler " + getName() + " started");
         subscribeOrderBookEvent();
         subscribeTickBroadcast();
+        subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
     }
 
     //subscribe to BookOrderEvent
@@ -37,7 +38,7 @@ public class SellingService extends MicroService {
             //check availability and get price
             Integer bookPrice = sendEvent(new CheckAvailabilityEvent(event.getBookTitle())).get();
             //if book is available
-            if (bookPrice != -1) {
+            if (bookPrice != null && bookPrice != -1) {
                 Customer customer = event.getCustomer();
                 synchronized (customer.getMoneyLock()) { //TODO
                     int amountOfMoney = customer.getAvailableCreditAmount();
@@ -46,7 +47,8 @@ public class SellingService extends MicroService {
                         //take the book
                         Future<OrderResult> sucessfulTaken = sendEvent(new TakeBookEvent(event.getBookTitle()));
                         //if succeed
-                        if (sucessfulTaken.get() == OrderResult.SUCCESSFULLY_TAKEN) {
+                        OrderResult r = sucessfulTaken.get();
+                        if (r!=null && r == OrderResult.SUCCESSFULLY_TAKEN) {
                             OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
                                     this.currentTick, event.getTick(), this.currentTick);
                             complete(event, receipt);
