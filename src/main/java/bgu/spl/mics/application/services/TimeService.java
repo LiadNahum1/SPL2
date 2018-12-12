@@ -37,7 +37,9 @@ public class TimeService extends MicroService{
 				sendBroadcast(new TickBroadcast(currentTick));
 				if(currentTick == duration){
 					sendBroadcast(new TerminateBroadcast());
-				}
+					timer.cancel();
+					}
+
 			}
 		}, 0, speed);
 	}
@@ -49,7 +51,7 @@ public class TimeService extends MicroService{
 
 	@Override
 	protected void initialize() {
-
+		terminate();
 	}
 
 }

@@ -8,6 +8,8 @@ import bgu.spl.mics.Messages.TerminateBroadcast;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Logistic service in charge of delivering books that have been purchased to customers.
  * Handles {@link DeliveryEvent}.
@@ -18,9 +20,10 @@ import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class LogisticsService extends MicroService {
-
-	public LogisticsService(int num) {
+private CountDownLatch countDownLatch;
+	public LogisticsService(int num , CountDownLatch countDownLatch) {
 		super("LogisticsService" + num);
+		this.countDownLatch = countDownLatch;
 	}
 
 	@Override
@@ -34,7 +37,7 @@ public class LogisticsService extends MicroService {
 				}
 			});
 		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
-
+		countDownLatch.countDown();
 	}
 
 		

@@ -13,6 +13,7 @@ import bgu.spl.mics.application.passiveObjects.OrderReceipt;
 import java.awt.*;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * APIService is in charge of the connection between a client and the store.
@@ -29,9 +30,10 @@ public class APIService extends MicroService{
 	private int currentTick ;
 	private ConcurrentHashMap<Integer,Vector<String>> orderingBooks;
 	private Vector<Future<OrderReceipt>> futures;
-
-	public APIService(Customer customer, OrderSchedule[] orders) {
+	private CountDownLatch c;
+	public APIService(Customer customer, OrderSchedule[] orders , CountDownLatch c) {
 		super("APIService " + customer.getId());
+		this.c =c;
 		this.orderingBooks = new ConcurrentHashMap<>();
 		for(int i=0; i<orders.length; i = i+1){
 			if(orderingBooks.get(orders[i].getTick()) == null){
@@ -68,7 +70,7 @@ public class APIService extends MicroService{
 				}
 		});
 		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
-
+		c.countDown();
 	}
 
 }
