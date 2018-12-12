@@ -2,14 +2,14 @@ package bgu.spl.mics.application;
 
 import bgu.spl.mics.application.passiveObjects.Customer;
 import bgu.spl.mics.application.passiveObjects.Inventory;
+import bgu.spl.mics.application.passiveObjects.MoneyRegister;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
@@ -40,26 +40,26 @@ public class BookStoreRunner {
             TimeService timeService = new TimeService(input.getServices().getTime().getSpeed(),input.getServices().getTime().getDuration());
             SellingService[] sellingServices = new SellingService[ns];
             for (int i = 0; i<sellingServices.length; i++){
-                sellingServices[i] = new SellingService(i+1);
+                sellingServices[i] = new SellingService(i+1,doneSignal);
             }
             InventoryService[] inventoryServices = new InventoryService[ni];
             for (int i = 0; i<inventoryServices.length; i++){
-                inventoryServices[i] = new InventoryService(i+1);
+                inventoryServices[i] = new InventoryService(i+1,doneSignal);
             }
             LogisticsService[] logisticsServices = new LogisticsService[nl];
             for (int i = 0; i<logisticsServices.length; i++){
-                logisticsServices[i] = new LogisticsService(i+1);
+                logisticsServices[i] = new LogisticsService(i+1,doneSignal);
             }
             ResourceService[] resourceServices = new ResourceService[nr];
             for (int i = 0; i<resourceServices.length; i++){
-                resourceServices[i] = new ResourceService(i+1);
+                resourceServices[i] = new ResourceService(i+1,doneSignal);
             }
             //create customers and API services
             APIService [] apiServices = new APIService[customers.length];
             for (int i=0; i< customers.length; i=i+1){
                 CustomerData cus = customerData[i];
                 customers[i] = new Customer(cus.getId(), cus.getName(), cus.getAddress(), cus.getDistance(), cus.getCreditCard().getNumber(), cus.getCreditCard().getAmount());
-                apiServices[i] = new APIService(customers[i], cus.getOrderSchedule());
+                apiServices[i] = new APIService(customers[i], cus.getOrderSchedule(),doneSignal);
             }
 
             //TODO: make sure all sevises has been initialized before the first broadcast started
@@ -80,26 +80,39 @@ public class BookStoreRunner {
             for (int i=0; i< apiServices.length; i=i+1){
                 v.add(new Thread(apiServices[i]));
             }
-            //join all threads to finiah proces
-            for (int i = 0; i<sellingServices.length; i++){
-                sellingServices[i] = new SellingService(i+1);
+           for(Thread t : v){
+                t.start();
+           }
+            doneSignal.await();
+            v.add(new Thread(timeService));
+            for(Thread t : v){
+                t.join();
             }
-            for (int i = 0; i<inventoryServices.length; i++){
-                inventoryServices[i] = new InventoryService(i+1);
+            //output files
+            HashMap<Integer, Customer> customerHashMap = new HashMap<>();
+            for (Customer c: customers){
+                customerHashMap.put(c.getId(), c);
             }
-            for (int i = 0; i<logisticsServices.length; i++){
-                logisticsServices[i] = new LogisticsService(i+1);
-            }
-            for (int i = 0; i<resourceServices.length; i++){
-                resourceServices[i] = new ResourceService(i+1);
-            }
-            for (int i=0; i< customers.length; i=i+1){
-
-            }
-
-
+            printAllCustomers(customerHashMap, args[1]); //HashMap<Integer,Customer>
+            inv.printInventoryToFile(args[2]); //HashMap<String,Integer>
+            MoneyRegister moneyReg = MoneyRegister.getInstance();
+            moneyReg.printOrderReceipts(args[3]); //List<OrderReceipt>
+            moneyReg.printOrderReceipts(args[4]); //MoneyRegister
         }
         catch(Exception e){}
+    }
+
+    public static void printAllCustomers(HashMap<Integer,Customer> customers, String filename) {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(customers);
+            out.close();
+            fileOut.close();
+            System.out.printf("Serialized data is saved in " + filename);
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
     }
 }
 
