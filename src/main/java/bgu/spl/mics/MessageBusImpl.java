@@ -126,7 +126,7 @@ public class MessageBusImpl implements MessageBus {
 					}
 
                 }
-                //unassign M from all brodcasts
+                //unassign M from all brodcasts.
                 synchronized (servisesToBrodcasts){
 					Set<Class<? extends Message>> keys = servisesToBrodcasts.keySet();
 					for(Class<? extends Message> classMsg : keys){
