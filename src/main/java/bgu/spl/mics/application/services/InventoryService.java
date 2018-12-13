@@ -40,10 +40,13 @@ public class InventoryService extends MicroService{
 
 		//subscribes to TakeBook Event
 		subscribeEvent(TakeBookEvent.class, event -> {
+
 			OrderResult orderRe =inventory.take(event.getBookTitle());
 			complete(event, orderRe);
+
 		});
-		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {
+			terminate();});
 		countDownLatch.countDown();
 
 	}

@@ -1,9 +1,6 @@
 package bgu.spl.mics.application;
 
-import bgu.spl.mics.application.passiveObjects.Customer;
-import bgu.spl.mics.application.passiveObjects.Inventory;
-import bgu.spl.mics.application.passiveObjects.MoneyRegister;
-import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
+import bgu.spl.mics.application.passiveObjects.*;
 import bgu.spl.mics.application.services.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,7 +28,13 @@ public class BookStoreRunner {
 
             //create inventory
             Inventory inv = Inventory.getInstance();
-            inv.load(input.getInitialInventory());
+            BookInventoryInfoData [] booksDada = input.getInitialInventory();
+            BookInventoryInfo [] books = new BookInventoryInfo[booksDada.length];
+            for (int i=0; i< books.length; i = i+1){
+                books[i] = new BookInventoryInfo(booksDada[i].getBookTitle(), booksDada[i].getAmount(), booksDada[i].getPrice());
+            }
+            inv.load(books);
+
             //create ResourceHolder
             ResourcesHolder reHolder = ResourcesHolder.getInstance();
             reHolder.load(input.getInitialResource()[0].getVehicles());
@@ -96,7 +99,7 @@ public class BookStoreRunner {
                     t.join();
                 }
             }
-            catch (Exception e){System.out.println("interapt");}
+            catch (Exception e){System.out.println("interupt");}
             //output files
             HashMap<Integer, Customer> customerHashMap = new HashMap<>();
             for (Customer c: customers){
@@ -106,7 +109,7 @@ public class BookStoreRunner {
             inv.printInventoryToFile(args[2]); //HashMap<String,Integer>
             MoneyRegister moneyReg = MoneyRegister.getInstance();
             moneyReg.printOrderReceipts(args[3]); //List<OrderReceipt>
-            moneyReg.printOrderReceipts(args[4]); //MoneyRegister
+            printMoneyRegister(args[4], moneyReg); //MoneyRegister
 
         }
 
@@ -117,6 +120,18 @@ public class BookStoreRunner {
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             out.writeObject(customers);
             out.close();
+            fileOut.close();
+            System.out.printf("Serialized data is saved in " + filename);
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+
+    }
+    public static void printMoneyRegister(String filename, MoneyRegister moneyReg) {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(moneyReg);
             fileOut.close();
             System.out.printf("Serialized data is saved in " + filename);
         } catch (IOException i) {

@@ -32,7 +32,8 @@ private CountDownLatch countDownLatch;
         System.out.println("Event Handler " + getName() + " started");
         subscribeOrderBookEvent();
         subscribeTickBroadcast();
-        subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+        subscribeBroadcast(TerminateBroadcast.class , broadcast-> {
+            terminate();});
     countDownLatch.countDown();
     }
 
@@ -44,15 +45,17 @@ private CountDownLatch countDownLatch;
             //if book is available
             if (bookPrice != null && bookPrice != -1) {
                 Customer customer = event.getCustomer();
-                synchronized (customer.getMoneyLock()) { //TODO
+                synchronized (customer.getMoneyLock()) {
                     int amountOfMoney = customer.getAvailableCreditAmount();
+
                     if (amountOfMoney >= bookPrice) {
-                        moneyReg.chargeCreditCard(customer, bookPrice); //charging customer
                         //take the book
                         Future<OrderResult> sucessfulTaken = sendEvent(new TakeBookEvent(event.getBookTitle()));
                         //if succeed
                         OrderResult r = sucessfulTaken.get();
+
                         if (r!=null && r == OrderResult.SUCCESSFULLY_TAKEN) {
+                            moneyReg.chargeCreditCard(customer, bookPrice); //charging customer
                             OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
                                     this.currentTick, event.getTick(), this.currentTick);
                             complete(event, receipt);

@@ -30,13 +30,15 @@ private CountDownLatch countDownLatch;
 	protected void initialize() {
 			subscribeEvent(DeliveryEvent.class, event -> {
 				Future<DeliveryVehicle> vehicleFuture = sendEvent(new AcquireVehicleEvent());
+
 				DeliveryVehicle vehicle = vehicleFuture.get();
 				if(vehicle!= null) {
 					vehicle.deliver(event.getDeliveryAddress(), event.getDistance());
 					sendEvent(new ReleaseVehicleEvent(vehicle));
 				}
 			});
-		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {
+			terminate();});
 		countDownLatch.countDown();
 	}
 

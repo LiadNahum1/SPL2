@@ -1,8 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.Vector;
 
 /**
@@ -14,7 +12,7 @@ import java.util.Vector;
  * <p>
  * You can add ONLY private fields and methods to this class as you see fit.
  */
-public class MoneyRegister {
+public class MoneyRegister implements Serializable {
 	private Vector<OrderReceipt> orderReceipt; //treadSafe
 	private int totalSum;
 	private MoneyRegister(){
@@ -71,6 +69,7 @@ public class MoneyRegister {
      */
 	public void printOrderReceipts(String filename) {
 		try {
+			File statText = new File(filename);
 			FileOutputStream fileOut = new FileOutputStream(filename);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
 			out.writeObject(orderReceipt);
@@ -81,16 +80,4 @@ public class MoneyRegister {
 		}
 	}
 
-	public void printMoneyRegister(String filename) {
-		try {
-			printOrderReceipts(filename);
-			FileOutputStream fileOut = new FileOutputStream(filename);
-			ObjectOutputStream out = new ObjectOutputStream(fileOut);
-			out.writeObject(new Integer(this.totalSum));
-			fileOut.close();
-			System.out.printf("Serialized data is saved in " + filename);
-		} catch (IOException i) {
-			i.printStackTrace();
-		}
-	}
 }

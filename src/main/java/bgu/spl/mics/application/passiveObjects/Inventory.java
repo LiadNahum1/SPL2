@@ -1,6 +1,7 @@
 package bgu.spl.mics.application.passiveObjects;
 
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -59,13 +60,14 @@ public class Inventory {
 	public OrderResult take (String book) {
 		BookInventoryInfo currentBook = null;
 		for (BookInventoryInfo bookInfo : books) {
-			if(bookInfo.getBookTitle() == book)
+			if(bookInfo.getBookTitle().compareTo(book)==0)
 				currentBook = bookInfo;
 		}
 		if(currentBook != null) {
 			synchronized (currentBook) {
 				if (currentBook.getAmountInInventory() > 0) {
 					currentBook.reduceAmountInInventory();
+					System.out.print("price = " + currentBook.getAmountInInventory());
 					return OrderResult.SUCCESSFULLY_TAKEN;
 				}
 			}
@@ -81,9 +83,11 @@ public class Inventory {
      */
 	public int checkAvailabiltyAndGetPrice(String book) {
 		BookInventoryInfo currentBook = null;
+
 		for (BookInventoryInfo bookInfo : books) {
-			if(bookInfo.getBookTitle() == book)
+			if(bookInfo.getBookTitle().compareTo(book) == 0) {
 				currentBook = bookInfo;
+			}
 		}
 		if(currentBook != null) {
 			synchronized (currentBook) {

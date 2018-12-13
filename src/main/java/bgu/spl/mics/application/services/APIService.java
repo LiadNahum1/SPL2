@@ -24,24 +24,24 @@ import java.util.concurrent.CountDownLatch;
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
-public class APIService extends MicroService{
+public class APIService extends MicroService {
 	private int timeout;
 	private Customer customer;
-	private int currentTick ;
-	private ConcurrentHashMap<Integer,Vector<String>> orderingBooks;
+	private int currentTick;
+	private ConcurrentHashMap<Integer, Vector<String>> orderingBooks;
 	private Vector<Future<OrderReceipt>> futures;
 	private CountDownLatch c;
-	public APIService(Customer customer, OrderSchedule[] orders , CountDownLatch c) {
+
+	public APIService(Customer customer, OrderSchedule[] orders, CountDownLatch c) {
 		super("APIService " + customer.getId());
-		this.c =c;
+		this.c = c;
 		this.orderingBooks = new ConcurrentHashMap<>();
-		for(int i=0; i<orders.length; i = i+1){
-			if(orderingBooks.get(orders[i].getTick()) == null){
+		for (int i = 0; i < orders.length; i = i + 1) {
+			if (orderingBooks.get(orders[i].getTick()) == null) {
 				Vector<String> booksInTick = new Vector<>();
 				booksInTick.add(orders[i].getBookTitle());
 				orderingBooks.put(orders[i].getTick(), booksInTick);
-			}
-			else{
+			} else {
 				orderingBooks.get(orders[i].getTick()).add(orders[i].getBookTitle());
 			}
 		}
@@ -53,24 +53,28 @@ public class APIService extends MicroService{
 
 	@Override
 	protected void initialize() {
-		 subscribeBroadcast(TickBroadcast.class, broadcast-> {
+		subscribeBroadcast(TickBroadcast.class, broadcast -> {
 			this.currentTick = broadcast.getCurrentTick();
-				if(orderingBooks.containsKey(currentTick)){
-					Vector<String> orders =  orderingBooks.get(currentTick);
-					for(String st : orders){
-						futures.add(sendEvent(new BookOrderEvent(customer,st,currentTick)));
-					}
+			if (orderingBooks.containsKey(currentTick)) {
+				Vector<String> orders = orderingBooks.get(currentTick);
+				for (String st : orders) {
+					futures.add(sendEvent(new BookOrderEvent(customer, st, currentTick)));
 				}
-				for(Future<OrderReceipt> or : futures) {
-					OrderReceipt completed = or.get();
-					if (completed != null) {
-						customer.addRecipt(completed);
-						sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-					}
+			}
+
+			for (Future<OrderReceipt> or : futures) {
+				OrderReceipt completed = or.get();
+				futures.remove(or);
+				if (completed != null) {
+					customer.addRecipt(completed);
+					sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
 				}
+			}
 		});
-		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {terminate();});
+		subscribeBroadcast(TerminateBroadcast.class, broadcast -> {
+			terminate();
+		});
 		c.countDown();
 	}
-
 }
+

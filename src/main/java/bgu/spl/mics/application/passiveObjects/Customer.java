@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.passiveObjects;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  * <p>
  * You may add fields and methods to this class as you see fit (including public methods).
  */
-public class Customer {
+public class Customer implements Serializable {
 	private int id;
 	private String name;
 	private String address;
@@ -17,7 +18,7 @@ public class Customer {
 	private List<OrderReceipt> receipts;
 	private int creditCard;
 	private int availableAmountInCreditCard;
-	private Object moneyLock;
+	private Integer moneyLock;
 	public Customer(int id, String name, String address, int distance, int creditCard, int availableAmountInCreditCard)
 	{
 		this.id = id;
@@ -27,7 +28,7 @@ public class Customer {
 		this.receipts = new LinkedList<>();
 		this.creditCard = creditCard;
 		this.availableAmountInCreditCard = availableAmountInCreditCard;
-		this.moneyLock = new Object();
+		this.moneyLock = new Integer(0);
 	}
 	/**
      * Retrieves the name of the customer.
