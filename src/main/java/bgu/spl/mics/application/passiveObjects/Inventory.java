@@ -67,7 +67,6 @@ public class Inventory {
 			synchronized (currentBook) {
 				if (currentBook.getAmountInInventory() > 0) {
 					currentBook.reduceAmountInInventory();
-					System.out.print("price = " + currentBook.getAmountInInventory());
 					return OrderResult.SUCCESSFULLY_TAKEN;
 				}
 			}
