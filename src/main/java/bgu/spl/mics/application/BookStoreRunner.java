@@ -94,7 +94,10 @@ public class BookStoreRunner {
             }
             try {
                 doneSignal.await();
-                v.add(new Thread(timeService));
+                Thread time = new Thread(timeService);
+                time.start();
+                v.add(time);
+
                 for (Thread t : v) {
                     t.join();
                 }

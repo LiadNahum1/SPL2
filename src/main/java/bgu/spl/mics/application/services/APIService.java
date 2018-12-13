@@ -25,7 +25,6 @@ import java.util.concurrent.CountDownLatch;
  * You MAY change constructor signatures and even add new public constructors.
  */
 public class APIService extends MicroService {
-	private int timeout;
 	private Customer customer;
 	private int currentTick;
 	private ConcurrentHashMap<Integer, Vector<String>> orderingBooks;
@@ -46,7 +45,6 @@ public class APIService extends MicroService {
 			}
 		}
 		this.customer = customer;
-		//this.timeout = ;
 		this.currentTick = 1;
 		this.futures = new Vector<>();
 	}

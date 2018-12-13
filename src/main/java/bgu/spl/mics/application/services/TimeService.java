@@ -17,34 +17,24 @@ import java.util.TimerTask;
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
-public class TimeService extends MicroService{
+public class TimeService extends MicroService {
 	private static TimeService instance = null;
 	private Timer timer;
 	private int speed;
 	private int duration;
 	private int currentTick;
+
 	public TimeService(int speed, int duration) {
 		super("Time Service");
 		this.speed = speed;
 		this.duration = duration;
-		this.currentTick = 1;
+		this.currentTick = 0;
 		//initialize timer
 		this.timer = new Timer();
-		this.timer.schedule(new TimerTask() {
-			@Override
-			public void run() {//TODO
-				currentTick = currentTick + 1;
-				sendBroadcast(new TickBroadcast(currentTick));
-				if(currentTick == duration){
-					sendBroadcast(new TerminateBroadcast());
-					timer.cancel();
-					}
-
-			}
-		}, 0, speed);
 	}
-	public static TimeService getInstance(int speed, int duration){
-		if(instance == null)
+
+	public static TimeService getInstance(int speed, int duration) {
+		if (instance == null)
 			instance = new TimeService(speed, duration);
 		return instance;
 	}
@@ -52,6 +42,17 @@ public class TimeService extends MicroService{
 	@Override
 	protected void initialize() {
 		terminate();
-	}
+		this.timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				currentTick = currentTick + 1;
+				sendBroadcast(new TickBroadcast(currentTick));
+				if (currentTick == duration) {
+					sendBroadcast(new TerminateBroadcast());
+					timer.cancel();
+				}
 
+			}
+		}, 0, speed);
+	}
 }
