@@ -51,7 +51,11 @@ public class BookInventoryInfo {
 			this.amountInInventory = this.amountInInventory - 1;
 		}
 	}
-	
+
+	//TODO erase
+	public String toString(){
+		return "\nTitle" + getBookTitle() + "\namount" + getAmountInInventory() + "\nprice" +getPrice()+"\n";
+	}
 
 	
 }

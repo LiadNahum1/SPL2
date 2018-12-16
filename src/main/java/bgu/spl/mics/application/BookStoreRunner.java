@@ -23,7 +23,7 @@ public class BookStoreRunner {
             input = gson.fromJson(reader, InputClass.class);
         }
         catch(Exception e){
-            System.out.println("couldnt read");
+            System.out.println("couldnt read" + args[0]);
         }
 
             //create inventory
@@ -108,10 +108,21 @@ public class BookStoreRunner {
             for (Customer c: customers){
                 customerHashMap.put(c.getId(), c);
             }
+
             printAllCustomers(customerHashMap, args[1]); //HashMap<Integer,Customer>
+             //TODO erase
+            System.out.println("customers");
+            for(Integer i:customerHashMap.keySet()){
+                System.out.print(i + " " + customerHashMap.get(i).toString());
+            }
+            System.out.println("books");             //TODO erase
             inv.printInventoryToFile(args[2]); //HashMap<String,Integer>
+
             MoneyRegister moneyReg = MoneyRegister.getInstance();
+            System.out.println("receipts");             //TODO erase
             moneyReg.printOrderReceipts(args[3]); //List<OrderReceipt>
+
+          System.out.println("MoneyRegister: " + moneyReg.getTotalEarnings());             //TODO erase
             printMoneyRegister(args[4], moneyReg); //MoneyRegister
 
         }

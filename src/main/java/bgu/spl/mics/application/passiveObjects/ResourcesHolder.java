@@ -3,6 +3,7 @@ package bgu.spl.mics.application.passiveObjects;
 import bgu.spl.mics.Future;
 
 import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -16,6 +17,7 @@ import java.util.concurrent.Semaphore;
  */
 public class ResourcesHolder {
 	private Vector<DeliveryVehicle> vehicles;
+	private ConcurrentLinkedQueue<Future<DeliveryVehicle>> unResolved;
 	private Semaphore sem;
 	//thread safe singelton
 	private static class SingletonHolderVehicle
@@ -24,6 +26,7 @@ public class ResourcesHolder {
 	}
 	private ResourcesHolder() {
 		this.vehicles = new Vector<>();
+		this.unResolved = new ConcurrentLinkedQueue<>();
 }
 
 	/**
@@ -43,13 +46,15 @@ public class ResourcesHolder {
      * 			{@link DeliveryVehicle} when completed.   
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
-		try{
-		sem.acquire();
+		Future <DeliveryVehicle> fu  = new Future<>();
+		if(sem.tryAcquire()){
+
+			fu.resolve(this.vehicles.remove(0));
 		}
-		catch (Exception e){}
-	 Future <DeliveryVehicle> fu  = new Future<>();
-	 fu.resolve(this.vehicles.remove(0));
-	 return fu;
+		else{
+			unResolved.add(fu);
+		}
+	 	return fu;
 	}
 	
 	/**
@@ -59,8 +64,18 @@ public class ResourcesHolder {
      * @param vehicle	{@link DeliveryVehicle} to be released.
      */
 	public void releaseVehicle(DeliveryVehicle vehicle) {
-		this.vehicles.add(vehicle);
-		sem.release();
+        System.out.println("release");
+	    synchronized (this.unResolved) {
+            if (!unResolved.isEmpty()) {
+                System.out.println("other gained" + this.unResolved.size());
+                unResolved.remove().resolve(vehicle);
+            } else {
+                System.out.println("no one asked" + this.unResolved.size());
+                this.vehicles.add(vehicle);
+                sem.release();
+            }
+        }
+
 	}
 	
 	/**
@@ -73,7 +88,7 @@ public class ResourcesHolder {
 			for (int i = 0; i < vehicles.length; i = i + 1) {
 				this.vehicles.add(vehicles[i]);
 			}
-			sem = new Semaphore(this.vehicles.size());
+			sem = new Semaphore(vehicles.length);
 		}
 	}
 

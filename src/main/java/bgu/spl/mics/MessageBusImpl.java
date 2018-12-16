@@ -63,7 +63,7 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public <T> void complete(Event<T> e, T result) {
-	futersOfEvents.get(e).resolve(result);
+		futersOfEvents.get(e).resolve(result);
 	}
 
 	@Override
@@ -97,9 +97,11 @@ public class MessageBusImpl implements MessageBus {
 				missionsToService.get(execute).add(e); //should i synchronize this?
 				missionsToService.notifyAll();
 			}
-			return fu;
 		}
-		else return null;
+		else {
+			fu.resolve(null);
+		}
+		return fu;
 	}
 
 	@Override

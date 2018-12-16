@@ -9,6 +9,7 @@ import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ResourceService is in charge of the store resources - the delivery vehicles.
@@ -19,28 +20,33 @@ import java.util.concurrent.CountDownLatch;
  * You can add private fields and public methods to this class.
  * You MAY change constructor signatures and even add new public constructors.
  */
-public class ResourceService extends MicroService{
-	private ResourcesHolder holder;
-	private CountDownLatch countDownLatch;
-	public ResourceService(int num , CountDownLatch countDownLatch) {
-		super("ResourceService" + num);
-		this.countDownLatch = countDownLatch;
-		holder = ResourcesHolder.getInstance();
-	}
+public class ResourceService extends MicroService {
+    private ResourcesHolder holder;
+    private CountDownLatch countDownLatch;
 
-	@Override
-	protected void initialize() {
-		subscribeEvent(AcquireVehicleEvent.class ,event ->{
-			Future<DeliveryVehicle> fu =holder.acquireVehicle();
-			complete(event,fu.get());
-		} );
+    public ResourceService(int num, CountDownLatch countDownLatch) {
+        super("ResourceService" + num);
+        this.countDownLatch = countDownLatch;
+        holder = ResourcesHolder.getInstance();
+    }
 
-		subscribeEvent(ReleaseVehicleEvent.class , event ->{
-			holder.releaseVehicle(event.getVehicle());
-		} );
-		subscribeBroadcast(TerminateBroadcast.class , broadcast-> {
-			terminate();});
-		countDownLatch.countDown();
-	}
+    @Override
+    protected void initialize() {
+        subscribeEvent(AcquireVehicleEvent.class, event -> {
+            Future<DeliveryVehicle> fu = holder.acquireVehicle();
+            complete(event, fu);
+        });
+
+        subscribeEvent(ReleaseVehicleEvent.class, event -> {
+            System.out.println("release" + getName());
+            holder.releaseVehicle(event.getVehicle());
+            complete(event, null);
+        });
+        subscribeBroadcast(TerminateBroadcast.class, broadcast -> {
+            holder.releaseVehicle(null);
+            terminate();
+        });
+        countDownLatch.countDown();
+    }
 
 }

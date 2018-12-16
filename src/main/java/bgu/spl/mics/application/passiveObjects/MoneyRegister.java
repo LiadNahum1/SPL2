@@ -68,6 +68,10 @@ public class MoneyRegister implements Serializable {
      * This method is called by the main method in order to generate the output.. 
      */
 	public void printOrderReceipts(String filename) {
+		//TODO erase
+		for(OrderReceipt s: orderReceipt){
+			System.out.println(s.toString());
+		}
 		try {
 			File statText = new File(filename);
 			FileOutputStream fileOut = new FileOutputStream(filename);

@@ -99,4 +99,9 @@ public class Customer implements Serializable {
 	public Object getMoneyLock(){
 		return this.moneyLock;
 	}
+
+	//TODO erase
+	public String toString(){
+		return "\nId "+ getId() + "\nname " + getName() + "\naddr " + getAddress() + "\ndist " + getDistance() + "\ncard " + getCreditNumber() + "\nmoney "+getAvailableCreditAmount()+"\n";
+	}
 }

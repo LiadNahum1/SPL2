@@ -88,4 +88,9 @@ public class OrderReceipt implements Serializable {
 	public int getProcessTick() {
 		return this.processTick;
 	}
+
+	//TODO erase
+	public String toString(){
+		return "\ncustomerId " + getCustomerId() + "\nordertick " + getOrderTick() + "\nid " + getOrderId() + "\nprice " + getPrice() + "\nseller " + getSeller()+"\n";
+	}
 }

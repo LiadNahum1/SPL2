@@ -9,6 +9,7 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Logistic service in charge of delivering books that have been purchased to customers.
@@ -29,11 +30,15 @@ private CountDownLatch countDownLatch;
 	@Override
 	protected void initialize() {
 			subscribeEvent(DeliveryEvent.class, event -> {
-				Future<DeliveryVehicle> vehicleFuture = sendEvent(new AcquireVehicleEvent());
-
-				DeliveryVehicle vehicle = vehicleFuture.get();
-				if(vehicle!= null) {
-					vehicle.deliver(event.getDeliveryAddress(), event.getDistance());
+                System.out.println("im in" + this.getName());
+                Future<Future<DeliveryVehicle>> vehicleFuture = sendEvent(new AcquireVehicleEvent());
+				Future<DeliveryVehicle> f_vehicle = vehicleFuture.get();
+				DeliveryVehicle vehicle = f_vehicle.get();
+                System.out.println("delivered");
+                if(vehicle!= null) {
+                    System.out.println("not null");
+                    vehicle.deliver(event.getDeliveryAddress(), event.getDistance());
+                    System.out.println("delivered for real ");
 					sendEvent(new ReleaseVehicleEvent(vehicle));
 				}
 			});

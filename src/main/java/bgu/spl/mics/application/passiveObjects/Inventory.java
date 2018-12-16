@@ -111,6 +111,14 @@ public class Inventory {
 			for(BookInventoryInfo bookInfo: books){
 				booksHashMap.put(bookInfo.getBookTitle(), bookInfo.getAmountInInventory());
 			}
+
+		//TODO erase
+
+		for(BookInventoryInfo bookInfo: books){
+			System.out.println(bookInfo.toString());
+		}
+
+
 			try {
 				FileOutputStream fileOut = new FileOutputStream(filename);
 				ObjectOutputStream out = new ObjectOutputStream(fileOut);

@@ -65,6 +65,7 @@ public class APIService extends MicroService {
 				futures.remove(or);
 				if (completed != null) {
 					customer.addRecipt(completed);
+					System.out.println("start sending");
 					sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
 				}
 			}
