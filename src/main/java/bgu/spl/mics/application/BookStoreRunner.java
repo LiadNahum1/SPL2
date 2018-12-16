@@ -75,19 +75,19 @@ public class BookStoreRunner {
             //start running all threads
             Vector<Thread> v = new Vector<>();
             for (int i = 0; i<sellingServices.length; i++){
-                v.add(new Thread(sellingServices[i]));
+                v.add(new Thread(sellingServices[i], sellingServices[i].getName()));
             }
             for (int i = 0; i<inventoryServices.length; i++){
-                v.add(new Thread(inventoryServices[i]));
+                v.add(new Thread(inventoryServices[i], inventoryServices[i].getName()));
             }
             for (int i = 0; i<logisticsServices.length; i++){
-                v.add(new Thread(logisticsServices[i]));
+                v.add(new Thread(logisticsServices[i], logisticsServices[i].getName()));
             }
             for (int i = 0; i<resourceServices.length; i++){
-                v.add(new Thread(resourceServices[i]));
+                v.add(new Thread(resourceServices[i], resourceServices[i].getName()));
             }
             for (int i=0; i< apiServices.length; i=i+1){
-                v.add(new Thread(apiServices[i]));
+                v.add(new Thread(apiServices[i], apiServices[i].getName()));
             }
             for(Thread t : v){
                 t.start();

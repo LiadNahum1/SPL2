@@ -61,12 +61,14 @@ public class APIService extends MicroService {
 			}
 
 			for (Future<OrderReceipt> or : futures) {
-				OrderReceipt completed = or.get();
-				futures.remove(or);
-				if (completed != null) {
-					customer.addRecipt(completed);
-					System.out.println("start sending");
-					sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
+				if(or.isDone()) { //TODO : CHECK WITH LISHAY
+					OrderReceipt completed = or.get();
+					futures.remove(or);
+					if (completed != null) {
+						customer.addRecipt(completed);
+						System.out.println("start sending");
+						sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
+					}
 				}
 			}
 		});
