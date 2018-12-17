@@ -56,21 +56,11 @@ public class APIService extends MicroService {
 			if (orderingBooks.containsKey(currentTick)) {
 				Vector<String> orders = orderingBooks.get(currentTick);
 				for (String st : orders) {
-					futures.add(sendEvent(new BookOrderEvent(customer, st, currentTick)));
+					sendEvent(new BookOrderEvent(customer, st, currentTick));
 				}
 			}
 
-			for (Future<OrderReceipt> or : futures) {
-				if(or.isDone()) { //TODO : CHECK WITH LISHAY
-					OrderReceipt completed = or.get();
-					futures.remove(or);
-					if (completed != null) {
-						customer.addRecipt(completed);
-						System.out.println("start sending");
-						sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-					}
-				}
-			}
+
 		});
 		subscribeBroadcast(TerminateBroadcast.class, broadcast -> {
 			terminate();

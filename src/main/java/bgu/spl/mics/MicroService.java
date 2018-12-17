@@ -162,12 +162,15 @@ public abstract class MicroService implements Runnable {
         messageBus.register(this); //Micro service registered to messageBus
         initialize();
         while (!terminated) {
+
+            Message message = null;
             try {
-                Message message = messageBus.awaitMessage(this);
-                Callback function = messageCallBackHash.get(message.getClass());
-                function.call(message);
+                message = messageBus.awaitMessage(this);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            catch(Exception e){}
+            Callback function = messageCallBackHash.get(message.getClass());
+                function.call(message);
 
         }
         messageBus.unregister(this);
