@@ -15,8 +15,8 @@ import java.util.concurrent.*;
 public class MessageBusImpl implements MessageBus {
 
 	private ConcurrentHashMap<MicroService,BlockingQueue<Message>>missionsToService;
-	private ConcurrentHashMap<Class<? extends Message>,BlockingQueue<MicroService>>servisesToEvents;
-	private ConcurrentHashMap<Class<? extends Message>, Vector<MicroService>>servisesToBrodcasts;
+	private ConcurrentHashMap<Class<? extends Message>,ConcurrentLinkedQueue<MicroService>>servisesToEvents;
+	private ConcurrentHashMap<Class<? extends Message>, ConcurrentLinkedQueue<MicroService>>servisesToBrodcasts;
     private ConcurrentHashMap<Message,Future>futersOfEvents;
     //thread safe singelton
 	private static class SingletonHolder {
@@ -39,7 +39,7 @@ public class MessageBusImpl implements MessageBus {
 				servisesToEvents.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
-				BlockingQueue<MicroService> queue = new LinkedBlockingQueue<>();
+				ConcurrentLinkedQueue<MicroService> queue = new ConcurrentLinkedQueue<>();
 				queue.add(m);
 				servisesToEvents.put(type, queue);
 
@@ -54,7 +54,7 @@ public class MessageBusImpl implements MessageBus {
 				servisesToBrodcasts.get(type).add(m);
 			} else //create a new queue to this events queueu
 			{
-				Vector<MicroService> list = new Vector<>();
+				ConcurrentLinkedQueue<MicroService> list = new ConcurrentLinkedQueue<>();
 				list.add(m);
 				servisesToBrodcasts.put(type, list);
 			}
@@ -68,51 +68,54 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-			if (servisesToBrodcasts.get(b.getClass()) != null) {
-				if (!servisesToBrodcasts.get(b.getClass()).isEmpty()) {
-					Iterator itr = servisesToBrodcasts.get(b.getClass()).iterator();
-					while (itr.hasNext()) {
-						BlockingQueue<Message> serviceQue = missionsToService.get(itr.next());
-						if(serviceQue!=null) {
-							synchronized (missionsToService) {
-								serviceQue.add(b);
-							}
+
+		if (servisesToBrodcasts.get(b.getClass()) != null) {
+			if (!servisesToBrodcasts.get(b.getClass()).isEmpty()) {
+				Iterator itr = servisesToBrodcasts.get(b.getClass()).iterator();
+				while (itr.hasNext()) {
+					BlockingQueue<Message> serviceQue = missionsToService.get(itr.next());
+					if (serviceQue != null) {
+						synchronized (missionsToService) {
+							serviceQue.add(b);
 						}
 					}
 				}
 			}
 		}
+	}
+
 
 
 
 	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
+
 		Future<T> fu = new Future<>();
 		futersOfEvents.put(e, fu);
-		BlockingQueue<MicroService> servicesQue = servisesToEvents.get(e.getClass());
+		ConcurrentLinkedQueue<MicroService> servicesQue = servisesToEvents.get(e.getClass());
 		MicroService execute;
-        if(servicesQue!=null) {
+		if (servicesQue != null) {
 			synchronized (servicesQue) {
 				if (!servicesQue.isEmpty()) {
 					execute = servicesQue.remove();
 					servicesQue.add(execute);
 					synchronized (execute) {
-							synchronized (missionsToService.get(execute)) {
-								if (missionsToService.get(execute) != null) {
-									missionsToService.get(execute).add(e);
-									return fu;
-								}
+						synchronized (missionsToService.get(execute)) {
+							if (missionsToService.get(execute) != null) {
+								missionsToService.get(execute).add(e);
+								return fu;
 							}
 						}
+					}
 
 
 				}
 			}
 		}
 		return null;
-
 	}
+
 
 	@Override
 	public void register(MicroService m) {
@@ -121,33 +124,54 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void unregister(MicroService m) {
-		//resolves all unfinished missions to be null
-		BlockingQueue<Message> toR = missionsToService.get(m);
-		while (!toR.isEmpty()){
-		futersOfEvents.get(toR.remove()).resolve(null);
+		for ( ConcurrentLinkedQueue<MicroService> q :servisesToEvents.values()){
+			// so a new event wont be added
+			synchronized(q) {
+				q.remove(m);
+			}
 		}
-		//remove m from servises queue
+		for ( ConcurrentLinkedQueue<MicroService> q : servisesToBrodcasts.values()){
+			// so a new broadcast wont be added
+			synchronized(q) {
+				q.remove(m);
+			}
+		}
+
+		for (Message mes : missionsToService.get(m)) {
+			if (mes instanceof Event) {
+				futersOfEvents.get(mes).resolve(null);
+			}
+		}
 		missionsToService.remove(m);
 
-		//unassign M from all events
-		Set<Class<? extends Message>> keys = servisesToEvents.keySet();
-		for (Class<? extends Message> classMsg : keys) {
-			synchronized (servisesToEvents.get(classMsg)) {
-				if (servisesToEvents.get(classMsg).contains(m))
-					servisesToEvents.get(classMsg).remove(m);
-			}
-		}
-		//unassign M from all brodcasts.
-		Set<Class<? extends Message>> keys2 = servisesToBrodcasts.keySet();
-		for(Class<? extends Message> classMsg : keys2) {
-			synchronized (servisesToBrodcasts.get(classMsg)) {
-				if (servisesToBrodcasts.get(classMsg).contains(m))
-					servisesToBrodcasts.get(classMsg).remove(m);
-			}
-		}
-
-
-    }
+	}
+		//	//resolves all unfinished missions to be null
+	//	BlockingQueue<Message> toR = missionsToService.get(m);
+	//	while (!toR.isEmpty()){
+	//	futersOfEvents.get(toR.remove()).resolve(null);
+	//	}
+	//	//remove m from servises queue
+	//	missionsToService.remove(m);
+//
+	//	//unassign M from all events
+	//	Set<Class<? extends Message>> keys = servisesToEvents.keySet();
+	//	for (Class<? extends Message> classMsg : keys) {
+	//		synchronized (servisesToEvents.get(classMsg)) {
+	//			if (servisesToEvents.get(classMsg).contains(m))
+	//				servisesToEvents.get(classMsg).remove(m);
+	//		}
+	//	}
+	//	//unassign M from all brodcasts.
+	//	Set<Class<? extends Message>> keys2 = servisesToBrodcasts.keySet();
+	//	for(Class<? extends Message> classMsg : keys2) {
+	//		synchronized (servisesToBrodcasts.get(classMsg)) {
+	//			if (servisesToBrodcasts.get(classMsg).contains(m))
+	//				servisesToBrodcasts.get(classMsg).remove(m);
+	//		}
+	//	}
+//
+//
+    //}
 
 	@Override
 	//return the next mission and wait for it
