@@ -28,7 +28,7 @@ public class TimeService extends MicroService {
 		super("Time Service");
 		this.speed = speed;
 		this.duration = duration;
-		this.currentTick = 0;
+		this.currentTick = 1;
 		//initialize timer
 		this.timer = new Timer();
 	}
@@ -46,13 +46,12 @@ public class TimeService extends MicroService {
 			@Override
 			public void run() {
 				System.out.println("tick" + currentTick);
-				currentTick = currentTick + 1;
 				sendBroadcast(new TickBroadcast(currentTick));
 				if (currentTick == duration) {
 					sendBroadcast(new TerminateBroadcast());
 					timer.cancel();
 				}
-
+				currentTick = currentTick + 1;
 			}
 		}, 0, speed);
 	}
