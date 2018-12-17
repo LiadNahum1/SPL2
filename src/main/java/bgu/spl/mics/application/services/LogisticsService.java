@@ -31,16 +31,16 @@ public class LogisticsService extends MicroService {
 	@Override
 	protected void initialize() {
 		subscribeEvent(DeliveryEvent.class, event -> {
-			System.out.println("im in" + this.getName());
 			Future<Future<DeliveryVehicle>> vehicleFuture = sendEvent(new AcquireVehicleEvent());
-			Future<DeliveryVehicle> f_vehicle = vehicleFuture.get();
-			DeliveryVehicle vehicle = f_vehicle.get(); //TODO: CHECK
-			System.out.println("delivered");
-			if (vehicle != null) {
-				System.out.println("not null");
-				vehicle.deliver(event.getDeliveryAddress(), event.getDistance());
-				System.out.println("delivered for real ");
-				sendEvent(new ReleaseVehicleEvent(vehicle));
+			if(vehicleFuture != null) {
+				Future<DeliveryVehicle> f_vehicle = vehicleFuture.get();
+				if(f_vehicle!=null) {
+					DeliveryVehicle vehicle = f_vehicle.get(); //TODO: CHECK
+					if (vehicle != null) {
+						vehicle.deliver(event.getDeliveryAddress(), event.getDistance());
+						sendEvent(new ReleaseVehicleEvent(vehicle));
+					}
+				}
 			}
 		});
 		subscribeBroadcast(TerminateBroadcast.class, broadcast -> {

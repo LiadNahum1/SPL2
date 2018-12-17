@@ -68,40 +68,50 @@ public class MessageBusImpl implements MessageBus {
 
 	@Override
 	public void sendBroadcast(Broadcast b) {
-		synchronized (servisesToBrodcasts) {
 			if (servisesToBrodcasts.get(b.getClass()) != null) {
-				Iterator itr = servisesToBrodcasts.get(b.getClass()).iterator();
-				while (itr.hasNext()) {
-					synchronized (missionsToService) {
-					missionsToService.get(itr.next()).add(b);
-					missionsToService.notifyAll();
-
+				if (!servisesToBrodcasts.get(b.getClass()).isEmpty()) {
+					Iterator itr = servisesToBrodcasts.get(b.getClass()).iterator();
+					while (itr.hasNext()) {
+						BlockingQueue<Message> serviceQue = missionsToService.get(itr.next());
+						if(serviceQue!=null) {
+							synchronized (missionsToService) {
+								serviceQue.add(b);
+							}
+						}
 					}
 				}
 			}
 		}
-	}
+
 
 
 	//sends it to the queue of the apropriate microservies
 	@Override
 	public <T> Future<T> sendEvent(Event<T> e) {
 		Future<T> fu = new Future<>();
-		synchronized (futersOfEvents) {
-           futersOfEvents.put(e, fu);
-        }
-        if(servisesToEvents.get(e.getClass())!= null) {
-			MicroService execute = servisesToEvents.get(e.getClass()).poll(); //this queue will not be deleted
-			servisesToEvents.get(e.getClass()).add(execute);
-			synchronized (missionsToService) {
-				missionsToService.get(execute).add(e); //should i synchronize this?
-				missionsToService.notifyAll();
+		futersOfEvents.put(e, fu);
+		BlockingQueue<MicroService> servicesQue = servisesToEvents.get(e.getClass());
+		MicroService execute;
+        if(servicesQue!=null) {
+			synchronized (servicesQue) {
+				if (!servicesQue.isEmpty()) {
+					execute = servicesQue.remove();
+					servicesQue.add(execute);
+					synchronized (execute) {
+							synchronized (missionsToService.get(execute)) {
+								if (missionsToService.get(execute) != null) {
+									missionsToService.get(execute).add(e);
+									return fu;
+								}
+							}
+						}
+
+
+				}
 			}
 		}
-		else {
-			fu.resolve(null);
-		}
-		return fu;
+		return null;
+
 	}
 
 	@Override
@@ -116,38 +126,37 @@ public class MessageBusImpl implements MessageBus {
 		while (!toR.isEmpty()){
 		futersOfEvents.get(toR.remove()).resolve(null);
 		}
-				//remove m from servises queue
-				missionsToService.remove(m);
-	            //unassign M from all events
-                synchronized (servisesToEvents){
-					Set<Class<? extends Message>> keys = servisesToEvents.keySet();
-					for(Class<? extends Message> classMsg : keys){
-						if(servisesToEvents.get(classMsg).contains(m))
-							servisesToEvents.get(classMsg).remove(m);
-					}
+		//remove m from servises queue
+		missionsToService.remove(m);
 
-                }
-                //unassign M from all brodcasts.
-                synchronized (servisesToBrodcasts){
-					Set<Class<? extends Message>> keys = servisesToBrodcasts.keySet();
-					for(Class<? extends Message> classMsg : keys){
-						if(servisesToBrodcasts.get(classMsg).contains(m))
-							servisesToBrodcasts.get(classMsg).remove(m);
-					}                }
+		//unassign M from all events
+		Set<Class<? extends Message>> keys = servisesToEvents.keySet();
+		for (Class<? extends Message> classMsg : keys) {
+			synchronized (servisesToEvents.get(classMsg)) {
+				if (servisesToEvents.get(classMsg).contains(m))
+					servisesToEvents.get(classMsg).remove(m);
+			}
+		}
+		//unassign M from all brodcasts.
+		Set<Class<? extends Message>> keys2 = servisesToBrodcasts.keySet();
+		for(Class<? extends Message> classMsg : keys2) {
+			synchronized (servisesToBrodcasts.get(classMsg)) {
+				if (servisesToBrodcasts.get(classMsg).contains(m))
+					servisesToBrodcasts.get(classMsg).remove(m);
+			}
+		}
+
 
     }
 
 	@Override
 	//return the next mission and wait for it
 	public Message awaitMessage(MicroService m) throws InterruptedException {
-		synchronized (missionsToService) {
 			if(missionsToService.get(m) == null)
 				throw new IllegalStateException();
-			while (missionsToService.get(m).isEmpty() == true) {
-				missionsToService.wait();
-			}
-			return missionsToService.get(m).take();
-		}
+
+			return missionsToService.get(m).take(); //blocking method waits until there is a message in the queue of the service
+
 	}
 
 }

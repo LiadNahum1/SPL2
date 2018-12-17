@@ -59,18 +59,22 @@ private CountDownLatch countDownLatch;
                             OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
                                     this.currentTick, event.getTick(), this.currentTick);
                             complete(event, receipt);
+                            System.out.println("receipt" + currentTick + getName() + receipt.getPrice());
                             sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
 
                             moneyReg.file(receipt); //saves receipt in money register
                         } else {
+                            System.out.println("order not successfuk" + currentTick + getName() );
                             complete(event, null);
                         }
                     } else {
+                        System.out.println("not enough money" + currentTick + getName() );
                         complete(event, null);
                     }
 
                 }
             } else {
+                System.out.println("not availa" + currentTick + getName() + "price" + bookPrice);
                 complete(event, null);
             }
         });

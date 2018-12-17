@@ -63,20 +63,16 @@ public class Inventory {
 	 * 			second should reduce by one the number of books of the desired type.
 	 */
 	public OrderResult take (String book) {
-		BookInventoryInfo currentBook = null;
-		for (BookInventoryInfo bookInfo : books) {
-			if(bookInfo.getBookTitle().compareTo(book)==0)
-				currentBook = bookInfo;
-		}
-		if(currentBook != null) {
-			if(semaphores.get(book).tryAcquire()) {
-				if (currentBook.getAmountInInventory() > 0) {
-					currentBook.reduceAmountInInventory();
-					if(currentBook.getAmountInInventory() == 0){
-						this.books.remove(currentBook);
-					}
-					return OrderResult.SUCCESSFULLY_TAKEN;
+		if(semaphores.containsKey(book)) {
+			if (semaphores.get(book).tryAcquire()) {
+				BookInventoryInfo currentBook = null;
+				for (BookInventoryInfo bookInfo : books) {
+					if (bookInfo.getBookTitle().compareTo(book) == 0)
+						currentBook = bookInfo;
 				}
+
+				currentBook.reduceAmountInInventory();
+				return OrderResult.SUCCESSFULLY_TAKEN;
 			}
 		}
 		return OrderResult.NOT_IN_STOCK;
@@ -90,18 +86,15 @@ public class Inventory {
 	 */
 	public int checkAvailabiltyAndGetPrice(String book) {
 		BookInventoryInfo currentBook = null;
-
 		for (BookInventoryInfo bookInfo : books) {
 			if(bookInfo.getBookTitle().compareTo(book) == 0) {
 				currentBook = bookInfo;
 			}
 		}
 		if(currentBook != null) {
-			if(semaphores.get(book).tryAcquire()) {
 				if (currentBook.getAmountInInventory() > 0) {
 					return currentBook.getPrice();
 				}
-			}
 		}
 		return -1;
 	}

@@ -47,14 +47,15 @@ public class ResourcesHolder {
      */
 	public Future<DeliveryVehicle> acquireVehicle() {
 		Future <DeliveryVehicle> fu  = new Future<>();
-		if(sem.tryAcquire()){
+		synchronized (unResolved) {
+			if (sem.tryAcquire()) {
 
-			fu.resolve(this.vehicles.remove(0));
+				fu.resolve(this.vehicles.remove(0));
+			} else {
+				unResolved.add(fu);
+			}
+			return fu;
 		}
-		else{
-			unResolved.add(fu);
-		}
-	 	return fu;
 	}
 	
 	/**
