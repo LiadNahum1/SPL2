@@ -41,40 +41,46 @@ private CountDownLatch countDownLatch;
     private void subscribeOrderBookEvent() {
         subscribeEvent(BookOrderEvent.class, event -> {
             //check availability and get price
-            Integer bookPrice = sendEvent(new CheckAvailabilityEvent(event.getBookTitle())).get();
-            //if book is available
-            if (bookPrice != null && bookPrice != -1) {
-                Customer customer = event.getCustomer();
-                synchronized (customer.getMoneyLock()) {
-                    int amountOfMoney = customer.getAvailableCreditAmount();
+            Future<Integer> bookPriceFuture = sendEvent(new CheckAvailabilityEvent(event.getBookTitle()));
+            if (bookPriceFuture != null) {
+                Integer bookPrice = bookPriceFuture.get();
+                //if book is available
+                if (bookPrice != null && bookPrice != -1) {
+                    Customer customer = event.getCustomer();
+                    synchronized (customer.getMoneyLock()) {
+                        int amountOfMoney = customer.getAvailableCreditAmount();
 
-                    if (amountOfMoney >= bookPrice) {
-                        //take the book
-                        Future<OrderResult> sucessfulTaken = sendEvent(new TakeBookEvent(event.getBookTitle()));
-                        //if succeed
-                        OrderResult r = sucessfulTaken.get();
+                        if (amountOfMoney >= bookPrice) {
+                            //take the book
+                            Future<OrderResult> sucessfulTaken = sendEvent(new TakeBookEvent(event.getBookTitle()));
+                            if (sucessfulTaken != null) {
+                                //if succeed
+                                OrderResult r = sucessfulTaken.get();
+                                if (r != null && r == OrderResult.SUCCESSFULLY_TAKEN) {
+                                    moneyReg.chargeCreditCard(customer, bookPrice); //charging customer
+                                    OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
+                                            this.currentTick, event.getTick(), this.currentTick);
+                                    complete(event, receipt);
+                                    sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
 
-                        if (r!=null && r == OrderResult.SUCCESSFULLY_TAKEN) {
-                            moneyReg.chargeCreditCard(customer, bookPrice); //charging customer
-                            OrderReceipt receipt = new OrderReceipt(0, getName(), customer.getId(), event.getBookTitle(), bookPrice,
-                                    this.currentTick, event.getTick(), this.currentTick);
-                            complete(event, receipt);
-                            System.out.println("receipt" + currentTick + getName() + receipt.getPrice());
-                            sendEvent(new DeliveryEvent(customer.getAddress(), customer.getDistance()));
-
-                            moneyReg.file(receipt); //saves receipt in money register
-                        } else {
-                            System.out.println("order not successfuk" + currentTick + getName() );
+                                    moneyReg.file(receipt); //saves receipt in money register
+                                } else {
+                                    complete(event, null);
+                                }
+                            } else {
+                                complete(event, null);
+                            }
+                        }
+                        else {
                             complete(event, null);
                         }
-                    } else {
-                        System.out.println("not enough money" + currentTick + getName() );
-                        complete(event, null);
-                    }
 
+                    }
+                } else {
+                    complete(event, null);
                 }
-            } else {
-                System.out.println("not availa" + currentTick + getName() + "price" + bookPrice);
+            }
+            else {
                 complete(event, null);
             }
         });

@@ -16,7 +16,7 @@ import java.util.concurrent.Semaphore;
  * You can add ONLY private methods and fields to this class.
  */
 public class ResourcesHolder {
-	private Vector<DeliveryVehicle> vehicles;
+	private ConcurrentLinkedQueue<DeliveryVehicle> vehicles;
 	private ConcurrentLinkedQueue<Future<DeliveryVehicle>> unResolved;
 	private Semaphore sem;
 	//thread safe singelton
@@ -25,7 +25,7 @@ public class ResourcesHolder {
 		private static ResourcesHolder instance = new ResourcesHolder();
 	}
 	private ResourcesHolder() {
-		this.vehicles = new Vector<>();
+		this.vehicles = new ConcurrentLinkedQueue<>();
 		this.unResolved = new ConcurrentLinkedQueue<>();
 }
 
@@ -34,7 +34,7 @@ public class ResourcesHolder {
      */
 	public static ResourcesHolder getInstance() {
 
-		return ResourcesHolder.SingletonHolderVehicle.instance;
+		return SingletonHolderVehicle.instance;
 	}
 
 	
@@ -50,7 +50,7 @@ public class ResourcesHolder {
 		synchronized (unResolved) {
 			if (sem.tryAcquire()) {
 
-				fu.resolve(this.vehicles.remove(0));
+				fu.resolve(this.vehicles.remove());
 			} else {
 				unResolved.add(fu);
 			}
@@ -85,12 +85,10 @@ public class ResourcesHolder {
      * @param vehicles	Array of {@link DeliveryVehicle} instances to store.
      */
 	public void load(DeliveryVehicle[] vehicles) {
-		synchronized (this.vehicles) {
 			for (int i = 0; i < vehicles.length; i = i + 1) {
 				this.vehicles.add(vehicles[i]);
 			}
 			sem = new Semaphore(vehicles.length);
 		}
-	}
 
 }

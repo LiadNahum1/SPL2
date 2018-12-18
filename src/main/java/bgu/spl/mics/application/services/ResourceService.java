@@ -8,6 +8,8 @@ import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.passiveObjects.DeliveryVehicle;
 import bgu.spl.mics.application.passiveObjects.ResourcesHolder;
 
+import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,17 +25,22 @@ import java.util.concurrent.TimeUnit;
 public class ResourceService extends MicroService {
     private ResourcesHolder holder;
     private CountDownLatch countDownLatch;
+    private Vector<Future<DeliveryVehicle>> unresolvedFut;
 
     public ResourceService(int num, CountDownLatch countDownLatch) {
         super("ResourceService" + num);
         this.countDownLatch = countDownLatch;
         holder = ResourcesHolder.getInstance();
+        unresolvedFut = new Vector<>();
     }
 
     @Override
     protected void initialize() {
         subscribeEvent(AcquireVehicleEvent.class, event -> {
             Future<DeliveryVehicle> fu = holder.acquireVehicle();
+            if (!fu.isDone()) {
+                unresolvedFut.add(fu);
+            }
             complete(event, fu);
         });
 
@@ -43,7 +50,9 @@ public class ResourceService extends MicroService {
             complete(event, null);
         });
         subscribeBroadcast(TerminateBroadcast.class, broadcast -> {
-            holder.releaseVehicle(null);
+            for (Future<DeliveryVehicle> vehicle : unresolvedFut) {
+                vehicle.resolve(null);
+            }
             terminate();
         });
         countDownLatch.countDown();
